@@ -355,6 +355,57 @@ describe('Lex Imperialis', () => {
   });
 });
 
+describe('OCI tool example', () => {
+  const exampleDir = path.join(ARMORY_ROOT, 'examples', 'oci-tool');
+
+  it('has a valid plugin.toml', () => {
+    const tomlPath = path.join(exampleDir, 'plugin.toml');
+    assert.ok(fs.existsSync(tomlPath));
+    const manifest = loadManifest(tomlPath);
+    assert.equal(manifest.plugin.type, 'extension');
+    assert.ok(manifest.plugin.id.includes('csv-analyzer'));
+  });
+
+  it('declares an OCI-backed tool', () => {
+    const toml = fs.readFileSync(path.join(exampleDir, 'plugin.toml'), 'utf-8');
+    assert.ok(toml.includes('runner = "oci"'), 'should use oci runner');
+    assert.ok(toml.includes('mount_cwd = true'), 'should mount cwd');
+    assert.ok(toml.includes('network = false'), 'should disable network');
+  });
+
+  it('has a Containerfile', () => {
+    assert.ok(fs.existsSync(path.join(exampleDir, 'Containerfile')));
+    const content = fs.readFileSync(path.join(exampleDir, 'Containerfile'), 'utf-8');
+    assert.ok(content.includes('FROM'), 'Containerfile must have a FROM instruction');
+    assert.ok(content.includes('ENTRYPOINT'), 'Containerfile must have an ENTRYPOINT');
+  });
+
+  it('has a tool script that follows the JSON contract', () => {
+    const toolPath = path.join(exampleDir, 'tool.py');
+    assert.ok(fs.existsSync(toolPath));
+    const content = fs.readFileSync(toolPath, 'utf-8');
+    // Must read from stdin
+    assert.ok(content.includes('sys.stdin'), 'tool must read from stdin');
+    // Must write JSON to stdout
+    assert.ok(content.includes('json.dump'), 'tool must write JSON to stdout');
+    // Must handle errors
+    assert.ok(content.includes('emit_error'), 'tool must have error handling');
+    // Must have the result/error contract
+    assert.ok(content.includes('"result"'), 'output must include "result" key');
+    assert.ok(content.includes('"error"'), 'output must include "error" key');
+  });
+
+  it('has a test CSV file', () => {
+    assert.ok(fs.existsSync(path.join(exampleDir, 'test.csv')));
+  });
+
+  it('has a README', () => {
+    const readme = fs.readFileSync(path.join(exampleDir, 'README.md'), 'utf-8');
+    assert.ok(readme.includes('podman'), 'README should mention podman');
+    assert.ok(readme.includes('Contract'), 'README should document the contract');
+  });
+});
+
 describe('Cross-plugin consistency', () => {
   const plugins = findPlugins();
 
