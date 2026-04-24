@@ -1,0 +1,23 @@
+[extension]
+name = "scry"
+repo = "https://github.com/styrene-lab/scry"
+description = "Agentic local image generation — FLUX, Stable Diffusion, LoRA, fine-tunes. ComfyUI workflow composition."
+category = "media"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.15"
+homepage = "https://github.com/styrene-lab/scry"
+
+[tools]
+generate_image = "Generate an image from a text prompt using local models"
+compose_workflow = "Build a ComfyUI workflow from natural language"
+search_models = "Search the local model catalog (checkpoints, LoRAs, VAEs)"
+list_models = "List installed models by type"
+
+[widgets]
+gallery = "Generated image history with parameters and outputs"
+preview = "Image preview modal for generation results"
+models = "Local model catalog browser"
+
+[requirements]
+comfyui = "Requires a running ComfyUI instance (local or remote)"

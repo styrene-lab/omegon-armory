@@ -1,0 +1,22 @@
+[extension]
+name = "aether"
+repo = "https://github.com/styrene-lab/aether"
+description = "Agent-to-agent communication over the Styrene mesh. Swarm coordination, task delegation, RBAC."
+category = "mesh"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.15"
+homepage = "https://github.com/styrene-lab/aether"
+
+[tools]
+aether_send = "Send a message to another agent on the mesh"
+aether_receive = "Check for inbound messages from other agents"
+aether_discover = "Discover agents on the mesh"
+aether_delegate = "Delegate a task to a subordinate agent"
+
+[secrets]
+required = []
+optional = ["STYRENED_SOCKET"]
+
+[requirements]
+styrened = "Requires a running styrened daemon for mesh transport"

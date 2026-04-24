@@ -1,0 +1,23 @@
+[extension]
+name = "vox"
+repo = "https://github.com/styrene-lab/vox"
+description = "Communication bridge — Discord, Slack, Signal, email. Unified inbound/outbound messaging for agents."
+category = "comms"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.15"
+homepage = "https://github.com/styrene-lab/vox"
+
+[tools]
+vox_reply = "Send a response through the originating communication channel"
+vox_route = "Poll for inbound messages from connected channels (called by omegon bridge)"
+
+[secrets]
+required = []
+optional = ["VOX_DISCORD_BOT_TOKEN", "VOX_SLACK_BOT_TOKEN", "VOX_SLACK_APP_TOKEN"]
+
+[connectors]
+discord = "Discord bot via gateway websocket"
+slack = "Slack app via Socket Mode"
+signal = "Signal messenger via signal-cli"
+email = "Email via IMAP/SMTP"

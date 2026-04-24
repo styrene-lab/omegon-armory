@@ -1,0 +1,56 @@
+# Omegon Armory — Extension Registry
+#
+# This file maps extension names to their git repositories.
+# Used by `omegon extension install <name>` for name-based resolution.
+#
+# Format:
+#   [extension-name]
+#   repo = "https://github.com/org/repo"
+#   description = "Short description"
+#   category = "category"
+#   maintainer = "Name or org"
+#   license = "SPDX identifier"
+#   min_sdk = "0.15"
+
+# ── First-party extensions (Styrene Lab) ────────────────────────────────────
+
+[scribe]
+repo = "https://github.com/styrene-lab/scribe"
+description = "Forge sync engine — bidirectional issue/task sync with GitHub, Forgejo, and GitLab. OAuth2 auth, git credential helper, optional codex vault integration."
+category = "forge"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.15"
+
+[scry]
+repo = "https://github.com/styrene-lab/scry"
+description = "Agentic local image generation — FLUX, Stable Diffusion, LoRA, fine-tunes. ComfyUI workflow composition."
+category = "media"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.15"
+
+[vox]
+repo = "https://github.com/styrene-lab/vox"
+description = "Communication bridge — Discord, Slack, Signal, email. Unified inbound/outbound messaging for agents."
+category = "comms"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.15"
+
+[aether]
+repo = "https://github.com/styrene-lab/aether"
+description = "Agent-to-agent communication over the Styrene mesh. Swarm coordination, delegation, RBAC."
+category = "mesh"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.15"
+
+[codex]
+repo = "https://github.com/styrene-lab/codex"
+description = "Vault document and task tools — search, read, write, kanban boards. Knowledge management for agents."
+category = "knowledge"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.15"
+manifest_path = "crates/codex-agent/manifest.toml"
