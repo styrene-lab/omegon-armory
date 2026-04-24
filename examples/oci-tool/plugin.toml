@@ -1,0 +1,23 @@
+[plugin]
+type = "extension"
+id = "dev.styrene.omegon.example.csv-analyzer"
+name = "CSV Analyzer"
+version = "1.0.0"
+description = "Analyze CSV files using pandas — runs in an OCI container for zero host dependencies"
+authors = ["styrene-lab"]
+license = "Apache-2.0"
+min_omegon = "0.15.0"
+
+# Tool backed by a container image.
+# The harness runs: podman run --rm -i [--mount...] <image> < '{"path":"...","query":"..."}'
+# and reads JSON from stdout.
+[[tools]]
+name = "analyze_csv"
+description = "Run statistical analysis on a CSV file. Supports: describe, correlate, group_by, query (natural language via pandas)."
+runner = "oci"
+image = "ghcr.io/styrene-lab/omegon-tool-csv-analyzer:latest"
+# Or build locally: build = "Containerfile"
+mount_cwd = true     # mount operator's working directory so the tool can read CSV files
+network = false      # no network needed — pure local computation
+timeout_secs = 60
+parameters = { type = "object", properties = { path = { type = "string", description = "Path to the CSV file (relative to cwd)" }, query = { type = "string", description = "What to analyze: 'describe', 'correlate', 'group_by <column>', or natural language query" } }, required = ["path"] }

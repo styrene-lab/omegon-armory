@@ -1,16 +1,16 @@
 # Omegon Armory
 
-The official extension registry for [Omegon](https://github.com/styrene-lab/omegon) — the terminal-native AI agent harness.
+Official plugin and extension repository for [Omegon](https://github.com/styrene-lab/omegon) — the terminal-native AI agent harness.
 
-## Install extensions by name
+## Extensions
+
+Install extensions by name:
 
 ```bash
 omegon extension install scribe
 omegon extension install scry
 omegon extension install vox
 ```
-
-## Available extensions
 
 | Extension | Category | Description |
 |-----------|----------|-------------|
@@ -20,21 +20,45 @@ omegon extension install vox
 | [aether](https://github.com/styrene-lab/aether) | mesh | Agent-to-agent mesh communication — swarm coordination, RBAC |
 | [codex](https://github.com/styrene-lab/codex) | knowledge | Vault documents, tasks, knowledge graph, design nodes |
 
-## Search from the CLI
+Search from the CLI:
 
 ```bash
 omegon extension search           # list all
 omegon extension search forge     # filter by name, category, or description
 ```
 
-## Submit an extension
+## Plugins
 
-1. Build your extension: `omegon extension init my-ext`
-2. Test locally: `omegon extension install ./my-ext`
+Plugins provide personas, tones, and skills — declarative TOML manifests with no binary required.
+
+| Plugin | Type | Description |
+|---|---|---|
+| `personas/systems-engineer` | persona | Systems engineering harness — the default Omegon identity |
+| `personas/tutor` | persona | Socratic tutor — guides through questioning, never lectures |
+| `tones/concise` | tone | Terse, direct output — minimal filler |
+| `tones/alan-watts` | tone | Philosophical, paradox-friendly, gently irreverent |
+| `skills/typescript` | skill | TypeScript development conventions |
+| `skills/rust` | skill | Rust development guidance |
+| `skills/security` | skill | Security checklist for code review |
+
+Install plugins:
+
+```bash
+omegon plugin install https://github.com/styrene-lab/omegon-armory/personas/tutor
+omegon plugin install ./omegon-armory/tones/alan-watts
+```
+
+## Submit
+
+### Extensions
+1. Build: `omegon extension init my-ext`
+2. Test: `omegon extension install ./my-ext`
 3. Push to a public git repo
-4. Open a PR adding your entry to `registry.toml`
+4. PR adding your entry to `registry.toml`
 
-See [CLAUDE.md](CLAUDE.md) for the registry format and detailed guidelines.
+### Plugins
+1. Create a directory with `plugin.toml` following the [plugin spec](docs/plugin-spec.md)
+2. PR adding your plugin directory
 
 ## License
 

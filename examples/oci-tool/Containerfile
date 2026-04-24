@@ -1,0 +1,24 @@
+# Omegon OCI Tool: CSV Analyzer
+#
+# This is a minimal example of a containerized tool plugin.
+# The contract: read JSON from stdin, write JSON to stdout.
+#
+# Build:   podman build -t omegon-tool-csv-analyzer -f Containerfile .
+# Test:    echo '{"path":"test.csv"}' | podman run --rm -i -v "$PWD:/work:ro" omegon-tool-csv-analyzer
+# Publish: podman push omegon-tool-csv-analyzer ghcr.io/styrene-lab/omegon-tool-csv-analyzer:latest
+
+FROM python:3.12-slim
+
+# Install dependencies — frozen in the image layer.
+# This is the dependency declaration. No requirements.txt parsing by omegon.
+RUN pip install --no-cache-dir pandas==2.2.3
+
+# Working directory where operator's files get mounted
+WORKDIR /work
+
+# Copy the tool script
+COPY tool.py /opt/tool.py
+
+# The entrypoint reads JSON from stdin, runs analysis, writes JSON to stdout.
+# No shell wrapping — direct Python execution.
+ENTRYPOINT ["python", "/opt/tool.py"]

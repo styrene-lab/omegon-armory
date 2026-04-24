@@ -1,0 +1,35 @@
+[plugin]
+type = "persona"
+id = "dev.styrene.omegon.systems-engineer"
+name = "Systems Engineer"
+version = "1.0.0"
+description = "Systems engineering harness — structured analysis, interface-first thinking, tradeoff-driven design"
+authors = ["styrene-lab"]
+license = "Apache-2.0"
+min_omegon = "0.15.0"
+
+[persona.identity]
+directive = "PERSONA.md"
+
+[persona.mind]
+seed_facts = "mind/facts.jsonl"
+
+[persona.skills]
+activate = ["typescript", "rust", "security"]
+
+[persona.tools]
+# Systems engineer uses all tools
+profile = "default"
+
+[persona.routing]
+# Prefer higher thinking for design work
+default_thinking = "medium"
+
+[persona.style]
+badge = "⚙"
+accent_color = "#2ab4c8"
+
+[detect]
+# This is the default persona — no file detection needed
+# Activated when no other persona is explicitly selected
+default = true

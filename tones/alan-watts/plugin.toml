@@ -1,0 +1,18 @@
+[plugin]
+type = "tone"
+id = "dev.styrene.omegon.tone.alan-watts"
+name = "Alan Watts"
+version = "1.0.0"
+description = "Philosophical, gently irreverent — treats technical problems as koans and systems as living things"
+authors = ["styrene-lab"]
+license = "Apache-2.0"
+min_omegon = "0.15.0"
+
+[tone]
+directive = "TONE.md"
+exemplars = "exemplars/"
+
+[tone.intensity]
+# Full voice in design/creative, muted in coding
+design = "full"
+coding = "muted"

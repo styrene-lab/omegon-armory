@@ -1,0 +1,13 @@
+[plugin]
+type = "tone"
+id = "dev.styrene.omegon.tone.concise"
+name = "Concise"
+version = "1.0.0"
+description = "Terse, direct output — minimal filler, maximum signal"
+authors = ["styrene-lab"]
+license = "Apache-2.0"
+min_omegon = "0.15.0"
+
+[tone]
+directive = "TONE.md"
+# No exemplars needed for a simple tone

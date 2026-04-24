@@ -1,0 +1,12 @@
+[plugin]
+type = "skill"
+id = "dev.styrene.omegon.skill.security"
+name = "Security Review"
+version = "1.0.0"
+description = "Security checklist for code review — input escaping, injection prevention, path traversal, process safety, secrets management"
+authors = ["styrene-lab"]
+license = "Apache-2.0"
+min_omegon = "0.15.0"
+
+[skill]
+guidance = "SKILL.md"
