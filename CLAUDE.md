@@ -81,6 +81,12 @@ url = "https://github.com/my-org/my-armory"
 
 The CLI checks the private armory first, then falls back to the public one.
 
+## Naming
+
+Extension names are globally unique in the flat namespace. If two authors want to publish extensions with the same name, the second must choose a different name (e.g., `acme-scribe` vs `scribe`).
+
+This is intentional for simplicity — same model as homebrew formulae. If namespace collisions become a real problem, we can add org-scoped names (`styrene-lab/scribe`) later without breaking the flat names (which become aliases).
+
 ## Registered Extensions
 
 | Name | Category | Description |
