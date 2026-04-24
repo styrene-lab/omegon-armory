@@ -1,0 +1,135 @@
+name: Validate Registry
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install taplo (TOML toolkit)
+        run: |
+          curl -fsSL https://github.com/tamasfe/taplo/releases/latest/download/taplo-full-linux-x86_64.gz \
+            | gunzip > /usr/local/bin/taplo
+          chmod +x /usr/local/bin/taplo
+
+      - name: Validate TOML syntax
+        run: |
+          taplo check registry.toml
+          for f in extensions/*.toml; do
+            taplo check "$f"
+          done
+
+      - name: Validate registry entries
+        run: |
+          python3 << 'EOF'
+          import tomllib
+          import sys
+
+          with open("registry.toml", "rb") as f:
+              registry = tomllib.load(f)
+
+          errors = []
+          required_fields = ["repo", "description", "category", "maintainer", "license", "min_sdk"]
+
+          for name, entry in registry.items():
+              if not isinstance(entry, dict):
+                  continue
+
+              for field in required_fields:
+                  if field not in entry:
+                      errors.append(f"[{name}] missing required field: {field}")
+
+              # Validate repo URL format
+              repo = entry.get("repo", "")
+              if repo and not (repo.startswith("https://") or repo.startswith("git@")):
+                  errors.append(f"[{name}] repo must be an HTTPS or git@ URL: {repo}")
+
+              # Validate name is lowercase alphanumeric + hyphens
+              if not all(c.isascii() and (c.islower() or c.isdigit() or c == '-') for c in name):
+                  errors.append(f"[{name}] name must be lowercase alphanumeric + hyphens")
+
+          if errors:
+              for e in errors:
+                  print(f"ERROR: {e}", file=sys.stderr)
+              sys.exit(1)
+
+          print(f"Registry valid: {len(registry)} extensions")
+          EOF
+
+      - name: Check detail files match registry
+        run: |
+          python3 << 'EOF'
+          import tomllib
+          import os
+          import sys
+
+          with open("registry.toml", "rb") as f:
+              registry = tomllib.load(f)
+
+          errors = []
+
+          # Every registry entry should have a detail file
+          for name in registry:
+              if not isinstance(registry[name], dict):
+                  continue
+              detail_path = f"extensions/{name}.toml"
+              if not os.path.exists(detail_path):
+                  errors.append(f"Missing detail file: {detail_path}")
+
+          # Every detail file should have a registry entry
+          for fname in os.listdir("extensions"):
+              if not fname.endswith(".toml"):
+                  continue
+              name = fname.removesuffix(".toml")
+              if name not in registry:
+                  errors.append(f"Detail file {fname} has no registry entry")
+
+          if errors:
+              for e in errors:
+                  print(f"WARNING: {e}", file=sys.stderr)
+              # Warnings, not failures — detail files are optional
+
+          print("Detail file check complete")
+          EOF
+
+      - name: Verify repo URLs are reachable
+        run: |
+          python3 << 'EOF'
+          import tomllib
+          import urllib.request
+          import sys
+
+          with open("registry.toml", "rb") as f:
+              registry = tomllib.load(f)
+
+          errors = []
+          for name, entry in registry.items():
+              if not isinstance(entry, dict):
+                  continue
+              repo = entry.get("repo", "")
+              if not repo.startswith("https://"):
+                  continue
+
+              try:
+                  req = urllib.request.Request(repo, method="HEAD")
+                  resp = urllib.request.urlopen(req, timeout=10)
+                  if resp.status >= 400:
+                      errors.append(f"[{name}] repo URL returned {resp.status}: {repo}")
+                  else:
+                      print(f"[{name}] ✓ {repo}")
+              except Exception as e:
+                  errors.append(f"[{name}] repo URL unreachable: {repo} ({e})")
+
+          if errors:
+              for e in errors:
+                  print(f"ERROR: {e}", file=sys.stderr)
+              sys.exit(1)
+
+          print("All repo URLs reachable")
+          EOF
