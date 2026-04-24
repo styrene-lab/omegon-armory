@@ -69,23 +69,23 @@ Edit `registry.toml` and add an `extensions/<name>.toml` detail file.
 3. Push to a public git repo
 4. Submit a PR to this repo adding your entry to `registry.toml`
 
-## Private Armories
+## Private Armories (planned)
 
-Operators can configure a custom armory URL for internal extensions:
+Private armory support is on the roadmap — operators will be able to configure a custom armory URL for internal extensions. For now, internal extensions can be installed by git URL directly:
 
-```toml
-# ~/.omegon/config.toml
-[armory]
-url = "https://github.com/my-org/my-armory"
+```bash
+omegon extension install https://git.internal/my-org/my-extension
 ```
-
-The CLI checks the private armory first, then falls back to the public one.
 
 ## Naming
 
 Extension names are globally unique in the flat namespace. If two authors want to publish extensions with the same name, the second must choose a different name (e.g., `acme-scribe` vs `scribe`).
 
 This is intentional for simplicity — same model as homebrew formulae. If namespace collisions become a real problem, we can add org-scoped names (`styrene-lab/scribe`) later without breaking the flat names (which become aliases).
+
+## License
+
+MIT. Earlier plugin content was contributed under Apache-2.0; relicensed to MIT for consistency across the Styrene ecosystem. Both are permissive open-source.
 
 ## Registered Extensions
 

@@ -8,7 +8,7 @@ on:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -45,12 +45,10 @@ jobs:
                   if field not in entry:
                       errors.append(f"[{name}] missing required field: {field}")
 
-              # Validate repo URL format
               repo = entry.get("repo", "")
               if repo and not (repo.startswith("https://") or repo.startswith("git@")):
                   errors.append(f"[{name}] repo must be an HTTPS or git@ URL: {repo}")
 
-              # Validate name is lowercase alphanumeric + hyphens
               if not all(c.isascii() and (c.islower() or c.isdigit() or c == '-') for c in name):
                   errors.append(f"[{name}] name must be lowercase alphanumeric + hyphens")
 
@@ -59,7 +57,7 @@ jobs:
                   print(f"ERROR: {e}", file=sys.stderr)
               sys.exit(1)
 
-          print(f"Registry valid: {len(registry)} extensions")
+          print(f"Registry valid: {len([k for k in registry if isinstance(registry[k], dict)])} extensions")
           EOF
 
       - name: Check detail files match registry
@@ -67,33 +65,23 @@ jobs:
           python3 << 'EOF'
           import tomllib
           import os
-          import sys
 
           with open("registry.toml", "rb") as f:
               registry = tomllib.load(f)
 
-          errors = []
-
-          # Every registry entry should have a detail file
           for name in registry:
               if not isinstance(registry[name], dict):
                   continue
               detail_path = f"extensions/{name}.toml"
               if not os.path.exists(detail_path):
-                  errors.append(f"Missing detail file: {detail_path}")
+                  print(f"NOTE: {detail_path} missing (optional)")
 
-          # Every detail file should have a registry entry
           for fname in os.listdir("extensions"):
               if not fname.endswith(".toml"):
                   continue
               name = fname.removesuffix(".toml")
               if name not in registry:
-                  errors.append(f"Detail file {fname} has no registry entry")
-
-          if errors:
-              for e in errors:
-                  print(f"WARNING: {e}", file=sys.stderr)
-              # Warnings, not failures — detail files are optional
+                  print(f"NOTE: {fname} has no registry entry")
 
           print("Detail file check complete")
           EOF
@@ -116,15 +104,18 @@ jobs:
               if not repo.startswith("https://"):
                   continue
 
+              # Use GET (not HEAD) — GitHub returns 403 for HEAD on public repos
               try:
-                  req = urllib.request.Request(repo, method="HEAD")
+                  req = urllib.request.Request(repo)
                   resp = urllib.request.urlopen(req, timeout=10)
-                  if resp.status >= 400:
-                      errors.append(f"[{name}] repo URL returned {resp.status}: {repo}")
+                  print(f"  [{name}] ok — {repo}")
+              except urllib.error.HTTPError as e:
+                  if e.code == 429:
+                      print(f"  [{name}] rate limited — skipping")
                   else:
-                      print(f"[{name}] ✓ {repo}")
+                      errors.append(f"[{name}] HTTP {e.code}: {repo}")
               except Exception as e:
-                  errors.append(f"[{name}] repo URL unreachable: {repo} ({e})")
+                  errors.append(f"[{name}] unreachable: {repo} ({e})")
 
           if errors:
               for e in errors:
