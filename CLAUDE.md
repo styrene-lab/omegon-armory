@@ -109,8 +109,24 @@ When a user runs `omegon catalog install`:
 ### Adding an Agent to the Catalog
 
 1. Create `catalog/<agent-id>/` with at minimum `agent.toml` and `PERSONA.md`
-2. Add an entry to `catalog-registry.toml` with the agent metadata and `files` list
+2. Add a **quoted** entry to `catalog-registry.toml` (see gotcha below)
 3. Update `catalog.rs` in omegon to include the new agent in `BUNDLED` for airgap support
+
+See [`docs/catalog-spec.md`](docs/catalog-spec.md) for the full spec.
+
+### TOML Key Quoting — Gotcha
+
+Agent IDs contain dots. `[styrene.bd-agent]` in TOML means nested tables, not a flat key — omegon's registry parser will error. **Always quote dotted IDs:**
+
+```toml
+# Correct
+["styrene.bd-agent"]
+files = [...]
+
+# Wrong — TOML parses as nested tables
+[styrene.bd-agent]
+files = [...]
+```
 
 ### Agent Bundle Files
 
