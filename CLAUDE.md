@@ -16,13 +16,21 @@ It also serves as the catalog of available extensions with metadata, tool listin
 
 ```
 omegon-armory/
-├── registry.toml              # Name → repo mapping (the index)
+├── registry.toml              # Extension name → repo mapping (the index)
+├── catalog-registry.toml      # Agent catalog index (id → files + metadata)
 ├── extensions/
 │   ├── scribe.toml            # Detailed metadata per extension
 │   ├── scry.toml
 │   ├── vox.toml
 │   ├── aether.toml
 │   └── codex.toml
+├── catalog/
+│   ├── styrene.bd-agent/      # Agent bundle files
+│   │   ├── agent.toml
+│   │   ├── agent.pkl
+│   │   ├── PERSONA.md
+│   │   └── mind/facts.jsonl
+│   └── ...                    # One directory per bundled agent
 └── docs/
     └── plugin-spec.md         # Plugin manifest specification
 ```
@@ -86,6 +94,32 @@ This is intentional for simplicity — same model as homebrew formulae. If names
 ## License
 
 MIT. Earlier plugin content was contributed under Apache-2.0; relicensed to MIT for consistency across the Styrene ecosystem. Both are permissive open-source.
+
+## Agent Catalog
+
+`catalog-registry.toml` is the index for `omegon catalog install`. It lists all available bundled agents, their metadata, and the files that comprise each bundle.
+
+When a user runs `omegon catalog install`:
+
+1. Omegon fetches `catalog-registry.toml` from the configured armory
+2. For each agent, downloads the listed files from `catalog/<agent-id>/`
+3. Writes them to `~/.omegon/catalog/<agent-id>/`
+4. Falls back to the binary-bundled copies if the network is unavailable (airgap support)
+
+### Adding an Agent to the Catalog
+
+1. Create `catalog/<agent-id>/` with at minimum `agent.toml` and `PERSONA.md`
+2. Add an entry to `catalog-registry.toml` with the agent metadata and `files` list
+3. Update `catalog.rs` in omegon to include the new agent in `BUNDLED` for airgap support
+
+### Agent Bundle Files
+
+| File | Required | Description |
+|------|----------|-------------|
+| `agent.toml` | Yes | Agent manifest (TOML format) |
+| `agent.pkl` | No | Agent manifest (Pkl format, enables `amends` inheritance) |
+| `PERSONA.md` | Yes | Persona directive |
+| `mind/facts.jsonl` | No | Seed knowledge facts (JSONL) |
 
 ## Registered Extensions
 
