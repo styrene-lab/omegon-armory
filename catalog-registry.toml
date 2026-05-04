@@ -4,49 +4,52 @@
 # each bundle. Used by `omegon catalog install` to fetch agents from upstream.
 #
 # Format:
-#   [agent-id]
+#   ["agent-id"]
 #   name = "Human-readable name"
 #   version = "semver"
 #   domain = "chat|coding|ops|infra|..."
 #   description = "Short description"
 #   files = ["agent.toml", ...]   # files to download, relative to catalog/<agent-id>/
+#
+# Note: agent IDs contain dots so keys must be quoted to avoid TOML nested-table
+# interpretation (e.g. ["styrene.bd-agent"] not [styrene.bd-agent]).
 
-[styrene.bd-agent]
+["styrene.bd-agent"]
 name = "Business Development"
 version = "1.0.0"
 domain = "ops"
 description = "Engagement tracking, opportunity assessment, proposal drafting, and client reporting. Connects to Scribe MCP for engagement data."
 files = ["agent.toml", "agent.pkl", "PERSONA.md", "mind/facts.jsonl"]
 
-[styrene.coding-agent]
+["styrene.coding-agent"]
 name = "Software Engineer"
 version = "1.0.0"
 domain = "coding"
 description = "General-purpose software engineering agent for code review, feature implementation, bug investigation, and refactoring across any language or framework."
 files = ["agent.toml", "PERSONA.md", "mind/facts.jsonl"]
 
-[styrene.community-agent]
+["styrene.community-agent"]
 name = "Styrene Community Agent"
 version = "1.0.0"
 domain = "coding"
 description = "Styrene project agent for Discord. Familiar with the styrene-lab ecosystem: omegon, vox, styrened, auspex, RNS/LXMF mesh networking, and edge device provisioning."
 files = ["agent.toml", "PERSONA.md", "mind/facts.jsonl"]
 
-[styrene.discord-agent]
+["styrene.discord-agent"]
 name = "Discord Agent"
 version = "1.0.0"
 domain = "chat"
 description = "Omegon agent bridged to Discord via vox. Responds to operator and user messages in configured servers."
 files = ["agent.toml", "agent.pkl", "PERSONA.md"]
 
-[styrene.infra-engineer]
+["styrene.infra-engineer"]
 name = "Infrastructure Engineer"
 version = "1.0.0"
 domain = "infra"
 description = "Kubernetes cluster management, deployment automation, Helm chart authoring, incident response, and infrastructure observability."
 files = ["agent.toml", "PERSONA.md", "mind/facts.jsonl"]
 
-[styrene.slack-agent]
+["styrene.slack-agent"]
 name = "Slack Agent"
 version = "1.0.0"
 domain = "chat"
