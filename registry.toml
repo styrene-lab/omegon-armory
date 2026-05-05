@@ -46,8 +46,8 @@ maintainer = "Black Meridian"
 license = "MIT"
 min_sdk = "0.15"
 
-[codex]
-repo = "https://github.com/styrene-lab/codex"
+[codyx]
+repo = "https://github.com/styrene-lab/codyx"
 description = "Vault document and task tools — search, read, write, kanban boards. Knowledge management for agents."
 category = "knowledge"
 maintainer = "Black Meridian"
