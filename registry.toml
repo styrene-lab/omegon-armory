@@ -46,12 +46,12 @@ maintainer = "Black Meridian"
 license = "MIT"
 min_sdk = "0.15"
 
-[codyx]
+[flynt]
 repo = "https://github.com/styrene-lab/codyx"
 description = "Vault document and task tools — search, read, write, kanban boards. Knowledge management for agents."
 category = "knowledge"
 maintainer = "Black Meridian"
 license = "MIT"
 min_sdk = "0.15"
-manifest_path = "crates/codex-agent/manifest.toml"
-asset_prefix = "codex-agent"
+manifest_path = "crates/flynt-agent/manifest.toml"
+asset_prefix = "flynt-agent"
