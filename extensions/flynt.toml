@@ -1,13 +1,13 @@
 [extension]
-name = "codex"
-repo = "https://github.com/styrene-lab/codex"
+name = "flynt"
+repo = "https://github.com/styrene-lab/flynt"
 description = "Vault document and task tools — search, read, write, kanban boards, knowledge graph. Markdown-native knowledge management."
 category = "knowledge"
 maintainer = "Black Meridian"
 license = "MIT"
 min_sdk = "0.15"
-homepage = "https://github.com/styrene-lab/codex"
-manifest_path = "crates/codex-agent/manifest.toml"
+homepage = "https://github.com/styrene-lab/flynt"
+manifest_path = "crates/flynt-agent/manifest.toml"
 
 [tools]
 search_documents = "Full-text search across vault documents"

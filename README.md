@@ -18,7 +18,7 @@ omegon extension install vox
 | [scry](https://github.com/styrene-lab/scry) | media | Local image generation — FLUX, Stable Diffusion, LoRA, ComfyUI |
 | [vox](https://github.com/styrene-lab/vox) | comms | Communication bridge — Discord, Slack, Signal, email |
 | [aether](https://github.com/styrene-lab/aether) | mesh | Agent-to-agent mesh communication — swarm coordination, RBAC |
-| [codex](https://github.com/styrene-lab/codex) | knowledge | Vault documents, tasks, knowledge graph, design nodes |
+| [flynt](https://github.com/styrene-lab/flynt) | knowledge | Vault documents, tasks, knowledge graph, design nodes |
 
 Search from the CLI:
 
