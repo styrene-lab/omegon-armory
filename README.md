@@ -10,6 +10,7 @@ Install extensions by name:
 omegon extension install scribe
 omegon extension install scry
 omegon extension install vox
+omegon extension install omegon-browser
 ```
 
 | Extension | Category | Description |
@@ -19,6 +20,7 @@ omegon extension install vox
 | [vox](https://github.com/styrene-lab/vox) | comms | Communication bridge — Discord, Slack, Signal, email |
 | [aether](https://github.com/styrene-lab/aether) | mesh | Agent-to-agent mesh communication — swarm coordination, RBAC |
 | [flynt](https://github.com/styrene-lab/flynt) | knowledge | Vault documents, tasks, knowledge graph, design nodes |
+| [omegon-browser](https://github.com/styrene-lab/omegon/tree/main/extensions/omegon-browser) | automation | Browser automation backed by Vercel agent-browser — snapshots, clicks, fills, waits, screenshots |
 
 Search from the CLI:
 
