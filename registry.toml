@@ -55,3 +55,13 @@ license = "MIT"
 min_sdk = "0.15"
 manifest_path = "crates/flynt-agent/manifest.toml"
 asset_prefix = "flynt-agent"
+
+[omegon-browser]
+repo = "https://github.com/styrene-lab/omegon"
+description = "Browser automation tools backed by Vercel agent-browser — open pages, inspect snapshots, click, fill, wait, read state, and capture screenshots."
+category = "automation"
+maintainer = "Black Meridian"
+license = "BUSL-1.1"
+min_sdk = "0.19"
+manifest_path = "extensions/omegon-browser/manifest.toml"
+asset_prefix = "omegon-browser"

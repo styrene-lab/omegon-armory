@@ -1,0 +1,29 @@
+[extension]
+name = "omegon-browser"
+repo = "https://github.com/styrene-lab/omegon"
+description = "Browser automation tools backed by Vercel agent-browser — open pages, inspect accessibility snapshots, click, fill, wait, read state, and capture screenshots."
+category = "automation"
+maintainer = "Black Meridian"
+license = "BUSL-1.1"
+min_sdk = "0.19"
+homepage = "https://github.com/styrene-lab/omegon/tree/main/extensions/omegon-browser"
+manifest_path = "extensions/omegon-browser/manifest.toml"
+asset_prefix = "omegon-browser"
+
+[tools]
+browser_status = "Check whether the configured agent-browser binary is available"
+browser_open = "Open a URL in an agent-browser-controlled browser session"
+browser_snapshot = "Capture a compact accessibility snapshot with interactive refs"
+browser_click = "Click a selector, locator, or agent-browser @ref"
+browser_fill = "Fill a form field identified by selector, locator, or @ref"
+browser_wait = "Wait for milliseconds, selector, text, URL glob, load state, or JavaScript expression"
+browser_get = "Read text, HTML, value, visibility, or an attribute from a target"
+browser_screenshot = "Capture a PNG screenshot to disk"
+browser_batch = "Run a bounded list of agent-browser commands in one daemon call"
+
+[external_dependencies]
+agent_browser = "Vercel agent-browser CLI must be installed separately and available on PATH or configured with agent_browser_binary"
+
+[security]
+allowed_domains = "Use per-call or configured domain allowlists for authenticated browser sessions"
+session_state = "Keep state files out of git; they can contain login material"
