@@ -38,14 +38,6 @@ maintainer = "Black Meridian"
 license = "MIT"
 min_sdk = "0.15"
 
-[aether]
-repo = "https://github.com/styrene-lab/aether"
-description = "Agent-to-agent communication over the Styrene mesh. Swarm coordination, delegation, RBAC."
-category = "mesh"
-maintainer = "Black Meridian"
-license = "MIT"
-min_sdk = "0.15"
-
 [flynt]
 repo = "https://github.com/styrene-lab/flynt"
 description = "Vault document and task tools — search, read, write, kanban boards. Knowledge management for agents."

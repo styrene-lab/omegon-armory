@@ -393,7 +393,7 @@ select {
 .package-card-side {
   display: grid;
   align-content: space-between;
-  gap: 14px;
+  gap: 10px;
 }
 
 .package-card-side code {
@@ -403,6 +403,19 @@ select {
   display: block;
   min-height: 40px;
   padding: 10px;
+}
+
+.install-note {
+  color: var(--muted);
+  display: block;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.install-note.large {
+  font-size: 14px;
+  margin: -4px 0 16px;
+  max-width: 720px;
 }
 
 .link-row,

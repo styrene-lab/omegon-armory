@@ -48,6 +48,7 @@ const hasDistinctHomepage =
       <div class="detail-main">
         <h2>Install</h2>
         <CommandBlock label="Omegon" command={item.installCommand} />
+        <p class="install-note large">{item.installNote}</p>
         {item.ociRef && <CommandBlock label="OCI pull" command={`oras pull ${item.ociRef}`} />}
         {item.verifyCommand && <CommandBlock label="Verify signature" command={item.verifyCommand} />}
 

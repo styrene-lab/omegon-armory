@@ -115,6 +115,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
           </div>
           <div class="package-card-side">
             <code>{item.installCommand}</code>
+            <small class="install-note">{item.installNote}</small>
             <div class="link-row">
               <a href={`/packages/${item.kind}/${item.id}`}>Details</a>
               <a href={item.sourceUrl}>Source</a>

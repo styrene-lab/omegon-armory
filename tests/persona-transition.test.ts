@@ -8,6 +8,7 @@ import { describe, it, beforeEach } from 'node:test';
 import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // --- In-memory plugin registry mock ---
 
@@ -131,6 +132,7 @@ class PluginRegistry {
 
 // --- Test fixtures ---
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ARMORY_ROOT = path.resolve(__dirname, '..');
 const LEX_CONTENT = fs.readFileSync(path.join(ARMORY_ROOT, 'core', 'lex-imperialis.md'), 'utf-8');
 

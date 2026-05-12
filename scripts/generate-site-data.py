@@ -53,6 +53,17 @@ def keywords(*values: str) -> list[str]:
     return seen
 
 
+def plugin_install_command(source_path: str) -> str:
+    return f"omegon plugin install ./{source_path}"
+
+
+def plugin_install_note(source_path: str) -> str:
+    return (
+        "Text-only plugin. Clone the armory repository first, then run this "
+        f"from the repository root to symlink ./{source_path} into OMEGON_HOME."
+    )
+
+
 def oci_items(oci_dir: Path) -> dict[tuple[str, str], dict]:
     index_path = oci_dir / "index.json"
     if not index_path.exists():
@@ -94,7 +105,8 @@ def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                     "repositoryUrl": repo_url,
                     "homepageUrl": source_url(source_path),
                     "armoryUrl": source_url(source_path),
-                    "installCommand": f"omegon armory install {root_name}/{slug}",
+                    "installCommand": plugin_install_command(source_path),
+                    "installNote": plugin_install_note(source_path),
                     "verifyCommand": f"cosign verify {oci_ref}" if oci_ref else "",
                     "ociRef": oci_ref or "",
                     "artifactType": oci_item.get("artifact_type", ""),
@@ -140,7 +152,8 @@ def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                 "repositoryUrl": repo_url,
                 "homepageUrl": source_url(source_path),
                 "armoryUrl": source_url(source_path),
-                "installCommand": f"omegon armory install catalog/{agent_id}",
+                "installCommand": "omegon catalog install",
+                "installNote": "Installs or updates all currently bundled catalog agents.",
                 "verifyCommand": f"cosign verify {oci_ref}" if oci_ref else "",
                 "ociRef": oci_ref or "",
                 "artifactType": oci_item.get("artifact_type", ""),
@@ -189,6 +202,7 @@ def extensions(repo: Path) -> list[dict]:
                 "homepageUrl": homepage,
                 "armoryUrl": github_blob_url(source_path),
                 "installCommand": f"omegon extension install {ext_id}",
+                "installNote": "Installs by name from the Omegon extension registry.",
                 "verifyCommand": "",
                 "ociRef": "",
                 "artifactType": "",

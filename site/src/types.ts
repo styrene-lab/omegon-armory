@@ -13,6 +13,7 @@ export type ArmoryItem = {
   homepageUrl: string;
   armoryUrl: string;
   installCommand: string;
+  installNote: string;
   verifyCommand?: string;
   ociRef?: string;
   artifactType?: string;
