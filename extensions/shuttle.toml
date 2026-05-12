@@ -1,0 +1,71 @@
+[extension]
+name = "shuttle"
+repo = "https://github.com/styrene-lab/shuttle"
+description = "Pure-Rust SSH remote execution — run commands, transfer files, manage tunnels. Authenticated via styrene-identity HKDF-derived per-host keys."
+category = "remote"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.19"
+homepage = "https://github.com/styrene-lab/shuttle"
+
+# ── Tools ───────────────────────────────────────────────────────────────────────
+#
+# All SSH operations are pure Rust (russh + ed25519-dalek). No shelling out to
+# ssh/scp. Authentication uses styrene-identity's two-level HKDF:
+#
+#   KeyDeriver::derive_ssh_user_key(label) → per-host Ed25519 seed
+#
+# Private key material exists only in memory during the signing operation
+# and is zeroized immediately after.
+
+[tools]
+ssh_exec = "Run a command on a remote host. Returns stdout, stderr, and exit code."
+ssh_script = "Upload and execute a multi-line script on a remote host. Streams output."
+scp_push = "Copy a local file to a remote host via SFTP."
+scp_pull = "Copy a remote file to the local machine via SFTP."
+sftp_ls = "List files on a remote host at a given path."
+sftp_read = "Read a remote file's contents without copying it locally."
+ssh_tunnel_open = "Open a local-to-remote port-forward tunnel."
+ssh_tunnel_close = "Close an open tunnel by ID."
+ssh_tunnel_list = "List active tunnels with their endpoints and status."
+ssh_hosts = "List configured hosts with address, user, and port."
+ssh_ping = "Test connectivity and authentication to a host."
+ssh_migrate_analyze = "Scan ~/.ssh/ and produce a migration plan — draft hosts.toml, identity label suggestions, keygen commands."
+
+# ── Configuration ───────────────────────────────────────────────────────────────
+#
+# Host definitions live in a TOML file mapping friendly names to connection
+# parameters. Each host references an identity_label that maps to a unique
+# HKDF-derived Ed25519 key.
+#
+# Example hosts.toml:
+#
+#   [prod-web-1]
+#   address = "10.0.1.50"
+#   user = "deploy"
+#   port = 22
+#   identity_label = "prod"
+#
+#   [gpu-box]
+#   address = "192.168.1.100"
+#   user = "ml"
+#   port = 2222
+#   identity_label = "lab"
+
+[config]
+hosts_file = { type = "string", label = "Host definitions file", description = "Path to hosts.toml defining remote machines.", default = "~/.omegon/shuttle/hosts.toml" }
+default_timeout_secs = { type = "number", label = "Default command timeout (seconds)", description = "Max seconds before an ssh_exec or ssh_script call is killed.", default = "30" }
+max_output_bytes = { type = "number", label = "Max output size (bytes)", description = "Maximum bytes returned from a single command execution.", default = "1048576" }
+allowed_hosts = { type = "string", label = "Allowed hosts", description = "Comma-separated host names the agent may connect to. Empty means all configured hosts.", required = false }
+connection_pool_size = { type = "number", label = "Connection pool size", description = "Max idle SSH connections to keep open across hosts.", default = "4" }
+known_hosts_file = { type = "string", label = "Known hosts file", description = "Path to known_hosts for server key verification. Created on first use if absent.", default = "~/.omegon/shuttle/known_hosts" }
+
+# ── Security ────────────────────────────────────────────────────────────────────
+
+[security]
+authentication = "Public-key only via styrene-identity HKDF-derived Ed25519 keys. No passwords, no agent forwarding, no key files on disk."
+host_verification = "Server host keys are verified against known_hosts_file. Unknown hosts are rejected by default (trust-on-first-use can be enabled per-host)."
+agent_forwarding = "Explicitly disabled. The agent's identity keys never leave the local machine."
+key_isolation = "Each identity_label derives a cryptographically distinct Ed25519 key. Compromising one host's authorized_keys reveals nothing about other hosts."
+command_audit = "Every ssh_exec and ssh_script invocation is logged with host, command hash, timestamp, identity_label, and exit code."
+output_limits = "Responses are truncated to max_output_bytes to prevent unbounded context consumption."

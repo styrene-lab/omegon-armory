@@ -53,3 +53,12 @@ license = "BUSL-1.1"
 min_sdk = "0.19"
 manifest_path = "extensions/omegon-browser/manifest.toml"
 asset_prefix = "omegon-browser"
+
+[shuttle]
+enabled = true
+repo = "https://github.com/styrene-lab/shuttle"
+description = "Pure-Rust SSH remote execution — run commands, transfer files, manage tunnels. Authenticated via styrene-identity HKDF-derived keys."
+category = "remote"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.19"

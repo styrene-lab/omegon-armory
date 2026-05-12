@@ -146,3 +146,4 @@ files = [...]
 | **vox** | comms | Communication bridge — Discord, Slack, Signal, email |
 | **aether** | mesh | Agent-to-agent mesh comms — swarm coordination, RBAC |
 | **codex** | knowledge | Vault documents, tasks, knowledge graph, design nodes |
+| **shuttle** | remote | Pure-Rust SSH remote execution, file transfer, tunnels via styrene-identity keys |
