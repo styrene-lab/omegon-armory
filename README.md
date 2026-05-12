@@ -26,23 +26,17 @@ npm run dev
 
 ## Extensions
 
-Install extensions by name:
+Install enabled extensions by name:
 
 ```bash
-omegon extension install scribe
-omegon extension install scry
-omegon extension install vox
-omegon extension install omegon-browser
+omegon extension install flynt
 ```
 
 | Extension | Category | Description |
 |-----------|----------|-------------|
-| [scribe](https://github.com/styrene-lab/scribe) | forge | Forge sync — GitHub/Forgejo issue tracking, OAuth2, credential helper |
-| [scry](https://github.com/styrene-lab/scry) | media | Local image generation — FLUX, Stable Diffusion, LoRA, ComfyUI |
-| [vox](https://github.com/styrene-lab/vox) | comms | Communication bridge — Discord, Slack, Signal, email |
-| [aether](https://github.com/styrene-lab/aether) | mesh | Agent-to-agent mesh communication — swarm coordination, RBAC |
 | [flynt](https://github.com/styrene-lab/flynt) | knowledge | Vault documents, tasks, knowledge graph, design nodes |
-| [omegon-browser](https://github.com/styrene-lab/omegon/tree/main/extensions/omegon-browser) | automation | Browser automation backed by Vercel agent-browser — snapshots, clicks, fills, waits, screenshots |
+
+Candidate extensions remain in `registry.toml` with `enabled = false` until their name-based install path and release artifacts have been tested.
 
 Search from the CLI:
 
@@ -61,14 +55,13 @@ Plugins provide personas, tones, and skills — declarative TOML manifests with 
 | `personas/tutor` | persona | Socratic tutor — guides through questioning, never lectures |
 | `tones/concise` | tone | Terse, direct output — minimal filler |
 | `tones/alan-watts` | tone | Philosophical, paradox-friendly, gently irreverent |
-| `skills/typescript` | skill | TypeScript development conventions |
-| `skills/rust` | skill | Rust development guidance |
 | `skills/security` | skill | Security checklist for code review |
 
 Install plugins:
 
 ```bash
-omegon plugin install https://github.com/styrene-lab/omegon-armory/personas/tutor
+git clone https://github.com/styrene-lab/omegon-armory
+omegon plugin install ./omegon-armory/personas/tutor
 omegon plugin install ./omegon-armory/tones/alan-watts
 ```
 

@@ -182,6 +182,8 @@ def extensions(repo: Path) -> list[dict]:
     for ext_id, entry in sorted(registry.items()):
         if not isinstance(entry, dict):
             continue
+        if not entry.get("enabled", True):
+            continue
         detail_path = repo / "extensions" / f"{ext_id}.toml"
         detail = load_toml(detail_path).get("extension", {}) if detail_path.exists() else {}
         files = [str(detail_path.relative_to(repo))] if detail_path.exists() else []

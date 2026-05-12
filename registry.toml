@@ -15,6 +15,7 @@
 # ── First-party extensions (Styrene Lab) ────────────────────────────────────
 
 [scribe]
+enabled = false
 repo = "https://github.com/styrene-lab/scribe"
 description = "Forge sync engine — bidirectional issue/task sync with GitHub, Forgejo, and GitLab. OAuth2 auth, git credential helper, optional codex vault integration."
 category = "forge"
@@ -23,6 +24,7 @@ license = "MIT"
 min_sdk = "0.15"
 
 [scry]
+enabled = false
 repo = "https://github.com/styrene-lab/scry"
 description = "Agentic local image generation — FLUX, Stable Diffusion, LoRA, fine-tunes. ComfyUI workflow composition."
 category = "media"
@@ -31,6 +33,7 @@ license = "MIT"
 min_sdk = "0.15"
 
 [vox]
+enabled = false
 repo = "https://github.com/styrene-lab/vox"
 description = "Communication bridge — Discord, Slack, Signal, email. Unified inbound/outbound messaging for agents."
 category = "comms"
@@ -39,6 +42,7 @@ license = "MIT"
 min_sdk = "0.15"
 
 [flynt]
+enabled = true
 repo = "https://github.com/styrene-lab/flynt"
 description = "Vault document and task tools — search, read, write, kanban boards. Knowledge management for agents."
 category = "knowledge"
@@ -49,6 +53,7 @@ manifest_path = "crates/flynt-agent/manifest.toml"
 asset_prefix = "flynt-agent"
 
 [omegon-browser]
+enabled = false
 repo = "https://github.com/styrene-lab/omegon"
 description = "Browser automation tools backed by Vercel agent-browser — open pages, inspect snapshots, click, fill, wait, read state, and capture screenshots."
 category = "automation"
