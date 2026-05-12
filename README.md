@@ -10,6 +10,19 @@ Build the OCI payloads locally:
 python3 scripts/build-oci-artifacts.py
 ```
 
+Validate all armory entries before publishing:
+
+```bash
+node --test tests/armory-entry-suite.mjs
+OMEGON_BIN=/path/to/omegon node --test tests/armory-entry-suite.mjs
+OMEGON_BIN=/path/to/omegon ARMORY_TEST_NETWORK=1 node --test tests/armory-entry-suite.mjs
+```
+
+The first command runs local schema, catalog, extension-gating, JSONL, and OCI
+tool contract checks. The second adds sandboxed installs for text plugins and
+catalog agents. The third performs live registry smoke tests and installs every
+enabled extension by name.
+
 Publish after logging in with ORAS:
 
 ```bash
