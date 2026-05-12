@@ -248,9 +248,14 @@ select {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
+  max-height: calc(100dvh - 118px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 14px;
   position: sticky;
-  top: 96px;
+  scrollbar-gutter: stable;
+  top: 94px;
+  z-index: 1;
 }
 
 .filter-panel fieldset {
@@ -568,6 +573,8 @@ pre {
   }
 
   .filter-panel {
+    max-height: none;
+    overflow: visible;
     position: static;
   }
 
