@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omegon-armory-zot
+  namespace: omegon-armory
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - registry.example.com
+      secretName: omegon-armory-zot-tls
+  rules:
+    - host: registry.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: omegon-armory-zot
+                port:
+                  name: http

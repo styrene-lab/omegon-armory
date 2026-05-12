@@ -1,0 +1,89 @@
+name: Publish OCI Armory
+
+on:
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: OCI registry namespace
+        required: true
+        default: ghcr.io/styrene-lab/omegon-armory
+      dry_run:
+        description: Build artifacts without pushing
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+  push:
+    branches: [main]
+    paths:
+      - catalog/**
+      - catalog-registry.toml
+      - personas/**
+      - skills/**
+      - tones/**
+      - scripts/build-oci-artifacts.py
+      - scripts/publish-oci-artifacts.py
+      - .github/workflows/publish-oci.yml
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set registry
+        id: registry
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=${{ inputs.registry }}" >> "$GITHUB_OUTPUT"
+            echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=ghcr.io/styrene-lab/omegon-armory" >> "$GITHUB_OUTPUT"
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: oras-project/setup-oras@v1
+
+      - uses: sigstore/cosign-installer@v3
+
+      - name: Build OCI payloads and index
+        run: |
+          python3 scripts/build-oci-artifacts.py \
+            --registry "${{ steps.registry.outputs.value }}" \
+            --out dist/oci
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: armory-oci-dist
+          path: dist/oci
+
+      - name: Login to GHCR
+        if: steps.registry.outputs.dry_run != 'true' && startsWith(steps.registry.outputs.value, 'ghcr.io/')
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" \
+            | oras login ghcr.io \
+                --username "${{ github.actor }}" \
+                --password-stdin
+
+      - name: Publish OCI artifacts
+        if: steps.registry.outputs.dry_run != 'true'
+        run: |
+          python3 scripts/publish-oci-artifacts.py \
+            --out dist/oci \
+            --sign
+
+      - name: Dry run publish commands
+        if: steps.registry.outputs.dry_run == 'true'
+        run: |
+          python3 scripts/publish-oci-artifacts.py \
+            --out dist/oci \
+            --dry-run \
+            --sign

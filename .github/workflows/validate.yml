@@ -86,6 +86,11 @@ jobs:
           print("Detail file check complete")
           EOF
 
+      - name: Build OCI artifact index
+        run: |
+          python3 scripts/build-oci-artifacts.py --out dist/oci-validate
+          python3 scripts/publish-oci-artifacts.py --out dist/oci-validate --dry-run --sign
+
       - name: Verify repo URLs are reachable
         run: |
           python3 << 'EOF'

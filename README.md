@@ -2,6 +2,20 @@
 
 Official plugin and extension repository for [Omegon](https://github.com/styrene-lab/omegon) — the terminal-native AI agent harness.
 
+Armory is also the source tree for OCI-packaged ecosystem artifacts. The first distribution target is GHCR; the self-hosted target is a zot registry backed by Cloudflare R2. See [docs/oci-registry-stack.md](docs/oci-registry-stack.md) and [deploy/zot-r2](deploy/zot-r2/).
+
+Build the OCI payloads locally:
+
+```bash
+python3 scripts/build-oci-artifacts.py
+```
+
+Publish after logging in with ORAS:
+
+```bash
+python3 scripts/publish-oci-artifacts.py --sign
+```
+
 ## Extensions
 
 Install extensions by name:

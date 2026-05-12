@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zot-config
+  namespace: omegon-armory
+data:
+  config.json: |
+    {
+      "distSpecVersion": "1.1.0",
+      "storage": {
+        "rootDirectory": "/var/lib/zot",
+        "storageDriver": {
+          "name": "s3",
+          "region": "auto",
+          "regionendpoint": "https://<account-id>.r2.cloudflarestorage.com",
+          "bucket": "omegon-armory-registry",
+          "secure": true,
+          "skipverify": false,
+          "forcepathstyle": true
+        }
+      },
+      "http": {
+        "address": "0.0.0.0",
+        "port": "5000"
+      },
+      "log": {
+        "level": "info"
+      }
+    }
