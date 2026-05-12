@@ -7,7 +7,7 @@ Development guidance for the Omegon Armory — the official extension registry.
 **omegon-armory** is the extension registry for Omegon. It maps extension names to git repositories so operators can install extensions by name:
 
 ```bash
-omegon extension install scribe    # instead of the full git URL
+omegon extension install flynt    # instead of the full git URL
 ```
 
 It also serves as the catalog of available extensions with metadata, tool listings, and integration documentation.
@@ -19,11 +19,11 @@ omegon-armory/
 ├── registry.toml              # Extension name → repo mapping (the index)
 ├── catalog-registry.toml      # Agent catalog index (id → files + metadata)
 ├── extensions/
-│   ├── scribe.toml            # Detailed metadata per extension
+│   ├── flynt.toml             # Detailed metadata per extension
+│   ├── shuttle.toml
 │   ├── scry.toml
 │   ├── vox.toml
-│   ├── aether.toml
-│   └── codex.toml
+│   └── omegon-browser.toml
 ├── catalog/
 │   ├── styrene.bd-agent/      # Agent bundle files
 │   │   ├── agent.toml
@@ -55,11 +55,11 @@ Per-extension detail files (`extensions/*.toml`) provide richer metadata: tool l
 
 ## How Resolution Works
 
-When a user runs `omegon extension install scribe`:
+When a user runs `omegon extension install flynt`:
 
 1. Omegon fetches `registry.toml` from the configured armory (default: this repo)
-2. Looks up `[scribe]` → gets `repo` URL
-3. Clones the repo to `~/.omegon/extensions/scribe/`
+2. Looks up `[flynt]` → gets `repo` URL
+3. Clones the repo to `~/.omegon/extensions/flynt/`
 4. Finds `manifest.toml` (at root, or at `manifest_path` if specified)
 5. Runs `cargo build --release` for native extensions
 6. Extension is ready — restart omegon to load it
@@ -87,9 +87,9 @@ omegon extension install https://git.internal/my-org/my-extension
 
 ## Naming
 
-Extension names are globally unique in the flat namespace. If two authors want to publish extensions with the same name, the second must choose a different name (e.g., `acme-scribe` vs `scribe`).
+Extension names are globally unique in the flat namespace. If two authors want to publish extensions with the same name, the second must choose a different name (e.g., `acme-flynt` vs `flynt`).
 
-This is intentional for simplicity — same model as homebrew formulae. If namespace collisions become a real problem, we can add org-scoped names (`styrene-lab/scribe`) later without breaking the flat names (which become aliases).
+This is intentional for simplicity — same model as homebrew formulae. If namespace collisions become a real problem, we can add org-scoped names (`styrene-lab/flynt`) later without breaking the flat names (which become aliases).
 
 ## License
 
@@ -139,11 +139,11 @@ files = [...]
 
 ## Registered Extensions
 
-| Name | Category | Description |
-|------|----------|-------------|
-| **scribe** | forge | Forge sync — GitHub/Forgejo issues, OAuth2, credential helper |
-| **scry** | media | Local image generation — FLUX, SD, LoRA, ComfyUI |
-| **vox** | comms | Communication bridge — Discord, Slack, Signal, email |
-| **aether** | mesh | Agent-to-agent mesh comms — swarm coordination, RBAC |
-| **codex** | knowledge | Vault documents, tasks, knowledge graph, design nodes |
-| **shuttle** | remote | Pure-Rust SSH remote execution, file transfer, tunnels via styrene-identity keys |
+| Name | Category | Status | Description |
+|------|----------|--------|-------------|
+| **flynt** | knowledge | live | Vault document and task tools — search, read, write, kanban boards |
+| **shuttle** | remote | live | Pure-Rust SSH remote execution, file transfer, tunnels via styrene-identity keys |
+| **omegon-browser** | automation | planned | Browser automation — open pages, inspect snapshots, click, fill, wait, screenshot |
+| **scry** | media | planned | Local image generation — FLUX, Stable Diffusion, LoRA, ComfyUI |
+| **vox** | comms | planned | Communication bridge — Discord, Slack, Signal, email |
+| **aether** | mesh | planned | Agent-to-agent mesh comms — swarm coordination, RBAC |
