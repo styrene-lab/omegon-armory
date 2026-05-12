@@ -30,6 +30,29 @@ def source_url(source_path: str) -> str:
     return f"{REPO_URL}/tree/main/{source_path}"
 
 
+def github_blob_url(source_path: str) -> str:
+    return f"{REPO_URL}/blob/main/{source_path}"
+
+
+def publisher_from_url(url: str) -> str:
+    if "github.com/styrene-lab/" in url:
+        return "Styrene Lab"
+    if "github.com/" in url:
+        parts = url.removeprefix("https://github.com/").split("/")
+        return parts[0] if parts else "Unknown"
+    return "Unknown"
+
+
+def keywords(*values: str) -> list[str]:
+    seen = []
+    for value in values:
+        for part in str(value).replace("/", " ").replace("-", " ").split():
+            normalized = part.strip().lower()
+            if normalized and normalized not in seen:
+                seen.append(normalized)
+    return seen
+
+
 def oci_items(oci_dir: Path) -> dict[tuple[str, str], dict]:
     index_path = oci_dir / "index.json"
     if not index_path.exists():
@@ -56,6 +79,7 @@ def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
             source_path = f"{root_name}/{slug}"
             oci_item = oci.get((kind, slug), {})
             oci_ref = oci_item.get("ref")
+            repo_url = REPO_URL
 
             items.append(
                 {
@@ -67,6 +91,9 @@ def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                     "category": kind,
                     "sourcePath": source_path,
                     "sourceUrl": source_url(source_path),
+                    "repositoryUrl": repo_url,
+                    "homepageUrl": source_url(source_path),
+                    "armoryUrl": source_url(source_path),
                     "installCommand": f"omegon armory install {root_name}/{slug}",
                     "verifyCommand": f"cosign verify {oci_ref}" if oci_ref else "",
                     "ociRef": oci_ref or "",
@@ -75,6 +102,10 @@ def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                     "manifestId": plugin["id"],
                     "license": plugin.get("license", "MIT"),
                     "minOmegon": plugin.get("min_omegon", ""),
+                    "publisher": "Styrene Lab",
+                    "official": True,
+                    "capabilities": plugin_capabilities(kind, manifest),
+                    "keywords": keywords(kind, slug, plugin["name"], plugin["description"]),
                     "files": iter_files(item_dir),
                 }
             )
@@ -95,6 +126,7 @@ def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
         source_path = f"catalog/{agent_id}"
         oci_item = oci.get(("agent", agent_id), {})
         oci_ref = oci_item.get("ref")
+        repo_url = REPO_URL
         items.append(
             {
                 "kind": "agent",
@@ -105,6 +137,9 @@ def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                 "category": entry["domain"],
                 "sourcePath": source_path,
                 "sourceUrl": source_url(source_path),
+                "repositoryUrl": repo_url,
+                "homepageUrl": source_url(source_path),
+                "armoryUrl": source_url(source_path),
                 "installCommand": f"omegon armory install catalog/{agent_id}",
                 "verifyCommand": f"cosign verify {oci_ref}" if oci_ref else "",
                 "ociRef": oci_ref or "",
@@ -113,6 +148,10 @@ def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                 "manifestId": agent_id,
                 "license": "MIT",
                 "minOmegon": entry.get("min_omegon", ""),
+                "publisher": "Styrene Lab",
+                "official": True,
+                "capabilities": agent_capabilities(entry),
+                "keywords": keywords("agent", agent_id, entry["domain"], entry["description"]),
                 "files": entry.get("files", iter_files(repo / source_path)),
             }
         )
@@ -131,7 +170,11 @@ def extensions(repo: Path) -> list[dict]:
         if not isinstance(entry, dict):
             continue
         detail_path = repo / "extensions" / f"{ext_id}.toml"
+        detail = load_toml(detail_path).get("extension", {}) if detail_path.exists() else {}
         files = [str(detail_path.relative_to(repo))] if detail_path.exists() else []
+        repo_url = entry["repo"]
+        homepage = detail.get("homepage", repo_url)
+        source_path = f"extensions/{ext_id}.toml"
         items.append(
             {
                 "kind": "extension",
@@ -140,8 +183,11 @@ def extensions(repo: Path) -> list[dict]:
                 "version": entry.get("version", "latest"),
                 "description": entry["description"],
                 "category": entry["category"],
-                "sourcePath": f"extensions/{ext_id}.toml",
-                "sourceUrl": entry["repo"],
+                "sourcePath": source_path,
+                "sourceUrl": homepage,
+                "repositoryUrl": repo_url,
+                "homepageUrl": homepage,
+                "armoryUrl": github_blob_url(source_path),
                 "installCommand": f"omegon extension install {ext_id}",
                 "verifyCommand": "",
                 "ociRef": "",
@@ -150,11 +196,57 @@ def extensions(repo: Path) -> list[dict]:
                 "manifestId": entry.get("manifest_path", ""),
                 "license": entry.get("license", ""),
                 "minOmegon": entry.get("min_sdk", ""),
+                "publisher": publisher_from_url(repo_url),
+                "official": repo_url.startswith("https://github.com/styrene-lab/"),
+                "capabilities": extension_capabilities(detail_path),
+                "keywords": keywords("extension", ext_id, entry["category"], entry["description"]),
                 "files": files,
             }
         )
 
     return items
+
+
+def plugin_capabilities(kind: str, manifest: dict) -> list[str]:
+    if kind == "skill":
+        return ["guidance"]
+    if kind == "tone":
+        values = ["tone"]
+        if manifest.get("tone", {}).get("exemplars"):
+            values.append("exemplars")
+        return values
+    if kind == "persona":
+        persona = manifest.get("persona", {})
+        values = ["persona"]
+        if persona.get("mind"):
+            values.append("memory")
+        if persona.get("skills"):
+            values.append("skills")
+        if persona.get("tools"):
+            values.append("tool policy")
+        return values
+    return []
+
+
+def agent_capabilities(entry: dict) -> list[str]:
+    values = [entry.get("domain", "agent")]
+    files = entry.get("files", [])
+    if "agent.pkl" in files:
+        values.append("pkl")
+    if any(file.startswith("mind/") for file in files):
+        values.append("memory")
+    return values
+
+
+def extension_capabilities(detail_path: Path) -> list[str]:
+    if not detail_path.exists():
+        return []
+    detail = load_toml(detail_path)
+    values = []
+    for section in ["tools", "cli", "secrets", "integrations", "external_dependencies"]:
+        if section in detail:
+            values.extend(detail[section].keys())
+    return sorted(values)
 
 
 def main() -> None:
@@ -172,8 +264,8 @@ def main() -> None:
     items.sort(key=lambda item: (item["kind"], item["id"]))
 
     payload = {
-      "generatedAt": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat(),
-      "items": items,
+        "generatedAt": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat(),
+        "items": items,
     }
 
     for target in [Path(args.out), Path(args.api)]:

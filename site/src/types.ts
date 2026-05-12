@@ -9,6 +9,9 @@ export type ArmoryItem = {
   category: string;
   sourcePath: string;
   sourceUrl: string;
+  repositoryUrl: string;
+  homepageUrl: string;
+  armoryUrl: string;
   installCommand: string;
   verifyCommand?: string;
   ociRef?: string;
@@ -17,5 +20,9 @@ export type ArmoryItem = {
   manifestId?: string;
   license?: string;
   minOmegon?: string;
+  publisher: string;
+  official: boolean;
+  capabilities: string[];
+  keywords: string[];
   files: string[];
 };

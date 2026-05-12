@@ -13,6 +13,11 @@ export function getStaticPaths() {
 }
 
 const { item } = Astro.props as { item: ArmoryItem };
+const hasDistinctRepository = item.repositoryUrl && item.repositoryUrl !== item.sourceUrl;
+const hasDistinctHomepage =
+  item.homepageUrl &&
+  item.homepageUrl !== item.sourceUrl &&
+  item.homepageUrl !== item.repositoryUrl;
 ---
 
 <BaseLayout title={`${item.name} | Omegon Armory`} description={item.description}>
@@ -22,10 +27,18 @@ const { item } = Astro.props as { item: ArmoryItem };
         <p class="eyebrow">{item.kind} / {item.category}</p>
         <h1>{item.name}</h1>
         <p>{item.description}</p>
+        <div class="detail-actions">
+          <a href={item.sourceUrl}>Source</a>
+          {hasDistinctRepository && <a href={item.repositoryUrl}>Repository</a>}
+          <a href={item.armoryUrl}>Armory metadata</a>
+          {hasDistinctHomepage && <a href={item.homepageUrl}>Homepage</a>}
+        </div>
       </div>
       <dl class="metadata-panel">
         <div><dt>Version</dt><dd>{item.version}</dd></div>
         <div><dt>Kind</dt><dd>{item.kind}</dd></div>
+        <div><dt>Publisher</dt><dd>{item.publisher}</dd></div>
+        {item.official && <div><dt>Status</dt><dd>Official</dd></div>}
         {item.license && <div><dt>License</dt><dd>{item.license}</dd></div>}
         {item.minOmegon && <div><dt>Min Omegon</dt><dd>{item.minOmegon}</dd></div>}
       </dl>
@@ -38,6 +51,15 @@ const { item } = Astro.props as { item: ArmoryItem };
         {item.ociRef && <CommandBlock label="OCI pull" command={`oras pull ${item.ociRef}`} />}
         {item.verifyCommand && <CommandBlock label="Verify signature" command={item.verifyCommand} />}
 
+        {item.capabilities.length > 0 && (
+          <>
+            <h2>Capabilities</h2>
+            <div class="chip-row large">
+              {item.capabilities.map((capability) => <span>{capability}</span>)}
+            </div>
+          </>
+        )}
+
         <h2>Included Files</h2>
         <ul class="file-list">
           {item.files.map((file) => <li><code>{file}</code></li>)}
@@ -47,7 +69,9 @@ const { item } = Astro.props as { item: ArmoryItem };
       <aside class="detail-side">
         <h2>Package Metadata</h2>
         <dl>
-          <div><dt>Source</dt><dd><a href={item.sourceUrl}>{item.sourcePath}</a></dd></div>
+          <div><dt>Source</dt><dd><a href={item.sourceUrl}>{item.sourceUrl}</a></dd></div>
+          {hasDistinctRepository && <div><dt>Repository</dt><dd><a href={item.repositoryUrl}>{item.repositoryUrl}</a></dd></div>}
+          <div><dt>Armory Metadata</dt><dd><a href={item.armoryUrl}>{item.sourcePath}</a></dd></div>
           {item.manifestId && <div><dt>Manifest ID</dt><dd><code>{item.manifestId}</code></dd></div>}
           {item.ociRef && <div><dt>OCI Ref</dt><dd><code>{item.ociRef}</code></dd></div>}
           {item.artifactType && <div><dt>Artifact Type</dt><dd><code>{item.artifactType}</code></dd></div>}

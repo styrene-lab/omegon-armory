@@ -10,7 +10,15 @@ type Props = {
 
 const { items, title = "Packages", intro, activeKind = "all" } = Astro.props;
 const categories = Array.from(new Set(items.map((item) => item.category).filter(Boolean))).sort();
+const licenses = Array.from(new Set(items.map((item) => item.license).filter(Boolean))).sort();
+const publishers = Array.from(new Set(items.map((item) => item.publisher).filter(Boolean))).sort();
 const kinds = ["all", "extension", "skill", "persona", "tone", "agent"];
+
+const countBy = (field: keyof ArmoryItem, value: string) =>
+  items.filter((item) => item[field] === value).length;
+
+const hasDistinctRepository = (item: ArmoryItem) =>
+  item.repositoryUrl && item.repositoryUrl !== item.sourceUrl;
 ---
 
 <section class="catalog-shell" data-catalog>
@@ -23,79 +31,135 @@ const kinds = ["all", "extension", "skill", "persona", "tone", "agent"];
     <div class="count" data-count>{items.length} packages</div>
   </div>
 
-  <div class="toolbar" aria-label="Catalog controls">
-    <label class="search-control">
-      <span>Search</span>
-      <input data-search type="search" placeholder="name, category, description, ref" autocomplete="off" />
-    </label>
-    <label>
-      <span>Kind</span>
-      <select data-kind>
-        {kinds.map((kind) => <option value={kind} selected={kind === activeKind}>{kind}</option>)}
-      </select>
-    </label>
-    <label>
-      <span>Category</span>
-      <select data-category>
-        <option value="all">all</option>
-        {categories.map((category) => <option value={category}>{category}</option>)}
-      </select>
-    </label>
-  </div>
+  <div class="catalog-layout">
+    <aside class="filter-panel" aria-label="Package filters">
+      <label class="search-control">
+        <span>Search packages</span>
+        <input data-search type="search" placeholder="Search by name, kind, ref, capability" autocomplete="off" />
+      </label>
 
-  <div class="package-table" role="table" aria-label="Armory package catalog">
-    <div class="table-row table-head" role="row">
-      <span>Name</span>
-      <span>Kind</span>
-      <span>Category</span>
-      <span>Version</span>
-      <span>Install</span>
+      <fieldset>
+        <legend>Kind</legend>
+        {kinds.map((kind) => (
+          <label class="check-row">
+            <input data-kind type="checkbox" value={kind} checked={kind === activeKind || (activeKind === "all" && kind === "all")} />
+            <span>{kind}</span>
+            <small>{kind === "all" ? items.length : countBy("kind", kind)}</small>
+          </label>
+        ))}
+      </fieldset>
+
+      <fieldset>
+        <legend>Category</legend>
+        {categories.map((category) => (
+          <label class="check-row">
+            <input data-category type="checkbox" value={category} />
+            <span>{category}</span>
+            <small>{countBy("category", category)}</small>
+          </label>
+        ))}
+      </fieldset>
+
+      <fieldset>
+        <legend>Publisher</legend>
+        {publishers.map((publisher) => (
+          <label class="check-row">
+            <input data-publisher type="checkbox" value={publisher} />
+            <span>{publisher}</span>
+            <small>{countBy("publisher", publisher)}</small>
+          </label>
+        ))}
+      </fieldset>
+
+      <fieldset>
+        <legend>License</legend>
+        {licenses.map((license) => (
+          <label class="check-row">
+            <input data-license type="checkbox" value={license} />
+            <span>{license}</span>
+            <small>{countBy("license", license)}</small>
+          </label>
+        ))}
+      </fieldset>
+    </aside>
+
+    <div class="package-results" aria-label="Armory package catalog">
+      {items.map((item) => (
+        <article
+          class="package-card"
+          data-row
+          data-kind={item.kind}
+          data-category={item.category}
+          data-publisher={item.publisher}
+          data-license={item.license ?? ""}
+          data-search={`${item.name} ${item.id} ${item.kind} ${item.category} ${item.publisher} ${item.description} ${item.ociRef ?? ""} ${item.capabilities.join(" ")}`}
+        >
+          <div class="package-card-main">
+            <div class="package-title-row">
+              <a href={`/packages/${item.kind}/${item.id}`} class="package-title">{item.name}</a>
+              <span class="badge">{item.kind}</span>
+              {item.official && <span class="badge badge-verified">Official</span>}
+            </div>
+            <p>{item.description}</p>
+            <div class="package-meta-line">
+              <span>{item.publisher}</span>
+              <span>{item.category}</span>
+              <span>{item.version}</span>
+              {item.license && <span>{item.license}</span>}
+            </div>
+            {item.capabilities.length > 0 && (
+              <div class="chip-row">
+                {item.capabilities.slice(0, 7).map((capability) => <span>{capability}</span>)}
+              </div>
+            )}
+          </div>
+          <div class="package-card-side">
+            <code>{item.installCommand}</code>
+            <div class="link-row">
+              <a href={`/packages/${item.kind}/${item.id}`}>Details</a>
+              <a href={item.sourceUrl}>Source</a>
+              {hasDistinctRepository(item) && <a href={item.repositoryUrl}>Repository</a>}
+              <a href={item.armoryUrl}>Armory metadata</a>
+            </div>
+          </div>
+        </article>
+      ))}
     </div>
-    {items.map((item) => (
-      <a
-        class="table-row package-row"
-        role="row"
-        href={`/packages/${item.kind}/${item.id}`}
-        data-row
-        data-kind={item.kind}
-        data-category={item.category}
-        data-search={`${item.name} ${item.id} ${item.kind} ${item.category} ${item.description} ${item.ociRef ?? ""}`}
-      >
-        <span>
-          <strong>{item.name}</strong>
-          <small>{item.description}</small>
-        </span>
-        <span><code>{item.kind}</code></span>
-        <span>{item.category}</span>
-        <span>{item.version}</span>
-        <span><code>{item.installCommand}</code></span>
-      </a>
-    ))}
   </div>
   <p class="empty-state" data-empty hidden>No packages match the current filters.</p>
 </section>
 
 <script>
-  const root = document.querySelector("[data-catalog]");
-  if (root) {
+    const root = document.querySelector("[data-catalog]");
+    if (root) {
     const search = root.querySelector("[data-search]");
-    const kind = root.querySelector("[data-kind]");
-    const category = root.querySelector("[data-category]");
+    const kindInputs = Array.from(root.querySelectorAll("[data-kind]"));
+    const categoryInputs = Array.from(root.querySelectorAll("[data-category]"));
+    const publisherInputs = Array.from(root.querySelectorAll("[data-publisher]"));
+    const licenseInputs = Array.from(root.querySelectorAll("[data-license]"));
     const rows = Array.from(root.querySelectorAll("[data-row]"));
     const count = root.querySelector("[data-count]");
     const empty = root.querySelector("[data-empty]");
 
+    const selected = (inputs) => inputs.filter((input) => input.checked).map((input) => input.value);
+    const anyMatches = (values, actual) => values.length === 0 || values.includes(actual);
+
     const apply = () => {
       const q = search.value.trim().toLowerCase();
-      const selectedKind = kind.value;
-      const selectedCategory = category.value;
+      const selectedKindsRaw = selected(kindInputs);
+      const selectedKinds = selectedKindsRaw.includes("all") ? [] : selectedKindsRaw;
+      const selectedCategories = selected(categoryInputs);
+      const selectedPublishers = selected(publisherInputs);
+      const selectedLicenses = selected(licenseInputs);
       let visible = 0;
 
       for (const row of rows) {
         const matchesSearch = !q || row.dataset.search.toLowerCase().includes(q);
-        const matchesKind = selectedKind === "all" || row.dataset.kind === selectedKind;
-        const matchesCategory = selectedCategory === "all" || row.dataset.category === selectedCategory;
-        const show = matchesSearch && matchesKind && matchesCategory;
+        const matchesKind = anyMatches(selectedKinds, row.dataset.kind);
+        const matchesCategory = anyMatches(selectedCategories, row.dataset.category);
+        const matchesPublisher = anyMatches(selectedPublishers, row.dataset.publisher);
+        const matchesLicense = anyMatches(selectedLicenses, row.dataset.license);
+        const show = matchesSearch && matchesKind && matchesCategory && matchesPublisher && matchesLicense;
         row.hidden = !show;
         if (show) visible += 1;
       }
@@ -105,8 +169,19 @@ const kinds = ["all", "extension", "skill", "persona", "tone", "agent"];
     };
 
     search.addEventListener("input", apply);
-    kind.addEventListener("change", apply);
-    category.addEventListener("change", apply);
+    for (const input of [...kindInputs, ...categoryInputs, ...publisherInputs, ...licenseInputs]) {
+      input.addEventListener("change", () => {
+        if (input.dataset.kind !== undefined && input.value === "all" && input.checked) {
+          for (const other of kindInputs) {
+            if (other !== input) other.checked = false;
+          }
+        } else if (input.dataset.kind !== undefined && input.checked) {
+          const all = kindInputs.find((candidate) => candidate.value === "all");
+          if (all) all.checked = false;
+        }
+        apply();
+      });
+    }
     apply();
   }
 </script>
