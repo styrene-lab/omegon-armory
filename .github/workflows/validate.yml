@@ -91,6 +91,18 @@ jobs:
           python3 scripts/build-oci-artifacts.py --out dist/oci-validate
           python3 scripts/publish-oci-artifacts.py --out dist/oci-validate --dry-run --sign
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Build public site
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
+
       - name: Verify repo URLs are reachable
         run: |
           python3 << 'EOF'

@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""Generate public site catalog JSON from Armory manifests and OCI build output."""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import tomllib
+from pathlib import Path
+
+
+REPO_URL = "https://github.com/styrene-lab/omegon-armory"
+
+
+def load_toml(path: Path) -> dict:
+    with path.open("rb") as handle:
+        return tomllib.load(handle)
+
+
+def iter_files(root: Path) -> list[str]:
+    return [
+        str(path.relative_to(root))
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+    ]
+
+
+def source_url(source_path: str) -> str:
+    return f"{REPO_URL}/tree/main/{source_path}"
+
+
+def oci_items(oci_dir: Path) -> dict[tuple[str, str], dict]:
+    index_path = oci_dir / "index.json"
+    if not index_path.exists():
+        return {}
+    data = json.loads(index_path.read_text())
+    return {(item["kind"], item["id"]): item for item in data.get("items", [])}
+
+
+def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
+    items = []
+    roots = {"skills": "skill", "personas": "persona", "tones": "tone"}
+
+    for root_name, kind in roots.items():
+        root = repo / root_name
+        if not root.exists():
+            continue
+        for item_dir in sorted(path for path in root.iterdir() if path.is_dir()):
+            manifest_path = item_dir / "plugin.toml"
+            if not manifest_path.exists():
+                continue
+            manifest = load_toml(manifest_path)
+            plugin = manifest["plugin"]
+            slug = item_dir.name
+            source_path = f"{root_name}/{slug}"
+            oci_item = oci.get((kind, slug), {})
+            oci_ref = oci_item.get("ref")
+
+            items.append(
+                {
+                    "kind": kind,
+                    "id": slug,
+                    "name": plugin["name"],
+                    "version": plugin["version"],
+                    "description": plugin["description"],
+                    "category": kind,
+                    "sourcePath": source_path,
+                    "sourceUrl": source_url(source_path),
+                    "installCommand": f"omegon armory install {root_name}/{slug}",
+                    "verifyCommand": f"cosign verify {oci_ref}" if oci_ref else "",
+                    "ociRef": oci_ref or "",
+                    "artifactType": oci_item.get("artifact_type", ""),
+                    "payloadDigest": oci_item.get("payload_digest", ""),
+                    "manifestId": plugin["id"],
+                    "license": plugin.get("license", "MIT"),
+                    "minOmegon": plugin.get("min_omegon", ""),
+                    "files": iter_files(item_dir),
+                }
+            )
+
+    return items
+
+
+def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
+    registry_path = repo / "catalog-registry.toml"
+    if not registry_path.exists():
+        return []
+    registry = load_toml(registry_path)
+    items = []
+
+    for agent_id, entry in sorted(registry.items()):
+        if not isinstance(entry, dict):
+            continue
+        source_path = f"catalog/{agent_id}"
+        oci_item = oci.get(("agent", agent_id), {})
+        oci_ref = oci_item.get("ref")
+        items.append(
+            {
+                "kind": "agent",
+                "id": agent_id,
+                "name": entry["name"],
+                "version": entry["version"],
+                "description": entry["description"],
+                "category": entry["domain"],
+                "sourcePath": source_path,
+                "sourceUrl": source_url(source_path),
+                "installCommand": f"omegon armory install catalog/{agent_id}",
+                "verifyCommand": f"cosign verify {oci_ref}" if oci_ref else "",
+                "ociRef": oci_ref or "",
+                "artifactType": oci_item.get("artifact_type", ""),
+                "payloadDigest": oci_item.get("payload_digest", ""),
+                "manifestId": agent_id,
+                "license": "MIT",
+                "minOmegon": entry.get("min_omegon", ""),
+                "files": entry.get("files", iter_files(repo / source_path)),
+            }
+        )
+
+    return items
+
+
+def extensions(repo: Path) -> list[dict]:
+    registry_path = repo / "registry.toml"
+    if not registry_path.exists():
+        return []
+    registry = load_toml(registry_path)
+    items = []
+
+    for ext_id, entry in sorted(registry.items()):
+        if not isinstance(entry, dict):
+            continue
+        detail_path = repo / "extensions" / f"{ext_id}.toml"
+        files = [str(detail_path.relative_to(repo))] if detail_path.exists() else []
+        items.append(
+            {
+                "kind": "extension",
+                "id": ext_id,
+                "name": ext_id,
+                "version": entry.get("version", "latest"),
+                "description": entry["description"],
+                "category": entry["category"],
+                "sourcePath": f"extensions/{ext_id}.toml",
+                "sourceUrl": entry["repo"],
+                "installCommand": f"omegon extension install {ext_id}",
+                "verifyCommand": "",
+                "ociRef": "",
+                "artifactType": "",
+                "payloadDigest": "",
+                "manifestId": entry.get("manifest_path", ""),
+                "license": entry.get("license", ""),
+                "minOmegon": entry.get("min_sdk", ""),
+                "files": files,
+            }
+        )
+
+    return items
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--oci", default="site/.cache/oci")
+    parser.add_argument("--out", default="site/src/data/armory.json")
+    parser.add_argument("--api", default="site/public/api/index.json")
+    args = parser.parse_args()
+
+    repo = Path.cwd()
+    oci = oci_items(Path(args.oci))
+    items = extensions(repo)
+    items.extend(plugin_catalog(repo, oci))
+    items.extend(catalog_agents(repo, oci))
+    items.sort(key=lambda item: (item["kind"], item["id"]))
+
+    payload = {
+      "generatedAt": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat(),
+      "items": items,
+    }
+
+    for target in [Path(args.out), Path(args.api)]:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+    print(f"Wrote {len(items)} site catalog entries")
+
+
+if __name__ == "__main__":
+    main()

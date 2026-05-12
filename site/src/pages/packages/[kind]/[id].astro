@@ -1,0 +1,59 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import CommandBlock from "../../../components/CommandBlock.astro";
+import data from "../../../data/armory.json";
+import type { ArmoryItem } from "../../../types";
+
+export function getStaticPaths() {
+  const items = data.items as ArmoryItem[];
+  return items.map((item) => ({
+    params: { kind: item.kind, id: item.id },
+    props: { item }
+  }));
+}
+
+const { item } = Astro.props as { item: ArmoryItem };
+---
+
+<BaseLayout title={`${item.name} | Omegon Armory`} description={item.description}>
+  <article class="detail-layout">
+    <header class="detail-header">
+      <div>
+        <p class="eyebrow">{item.kind} / {item.category}</p>
+        <h1>{item.name}</h1>
+        <p>{item.description}</p>
+      </div>
+      <dl class="metadata-panel">
+        <div><dt>Version</dt><dd>{item.version}</dd></div>
+        <div><dt>Kind</dt><dd>{item.kind}</dd></div>
+        {item.license && <div><dt>License</dt><dd>{item.license}</dd></div>}
+        {item.minOmegon && <div><dt>Min Omegon</dt><dd>{item.minOmegon}</dd></div>}
+      </dl>
+    </header>
+
+    <section class="detail-grid">
+      <div class="detail-main">
+        <h2>Install</h2>
+        <CommandBlock label="Omegon" command={item.installCommand} />
+        {item.ociRef && <CommandBlock label="OCI pull" command={`oras pull ${item.ociRef}`} />}
+        {item.verifyCommand && <CommandBlock label="Verify signature" command={item.verifyCommand} />}
+
+        <h2>Included Files</h2>
+        <ul class="file-list">
+          {item.files.map((file) => <li><code>{file}</code></li>)}
+        </ul>
+      </div>
+
+      <aside class="detail-side">
+        <h2>Package Metadata</h2>
+        <dl>
+          <div><dt>Source</dt><dd><a href={item.sourceUrl}>{item.sourcePath}</a></dd></div>
+          {item.manifestId && <div><dt>Manifest ID</dt><dd><code>{item.manifestId}</code></dd></div>}
+          {item.ociRef && <div><dt>OCI Ref</dt><dd><code>{item.ociRef}</code></dd></div>}
+          {item.artifactType && <div><dt>Artifact Type</dt><dd><code>{item.artifactType}</code></dd></div>}
+          {item.payloadDigest && <div><dt>Payload Digest</dt><dd><code>{item.payloadDigest}</code></dd></div>}
+        </dl>
+      </aside>
+    </section>
+  </article>
+</BaseLayout>

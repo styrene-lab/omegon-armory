@@ -1,0 +1,45 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Self-host Armory | Omegon Armory">
+  <section class="docs-page">
+    <p class="eyebrow">Self-hosting</p>
+    <h1>OCI Registry Stack</h1>
+    <p>
+      Armory publishes to GHCR first and provides a self-hostable zot registry backed by
+      Cloudflare R2 for operators who want their own package distribution endpoint.
+    </p>
+
+    <h2>Default Path</h2>
+    <ol>
+      <li>Review source changes in the GitHub Armory repo.</li>
+      <li>Package skills, personas, tones, and agents as OCI artifacts.</li>
+      <li>Publish signed artifacts and an index to GHCR.</li>
+      <li>Mirror the same path layout into a zot registry when self-hosting.</li>
+    </ol>
+
+    <h2>Self-hosted Stack</h2>
+    <pre><code>OCI client
+  -> registry.example.com
+      -> zot on Kubernetes
+          -> Cloudflare R2 bucket</code></pre>
+
+    <h2>Deploy</h2>
+    <pre><code>cp deploy/zot-r2/secret.example.yaml deploy/zot-r2/secret.yaml
+kubectl apply -k deploy/zot-r2</code></pre>
+
+    <h2>Publish</h2>
+    <pre><code>python3 scripts/build-oci-artifacts.py \
+  --registry registry.example.com/omegon-armory \
+  --out dist/oci
+
+oras login registry.example.com
+python3 scripts/publish-oci-artifacts.py --out dist/oci --sign</code></pre>
+
+    <p>
+      Full operator details live in
+      <a href="https://github.com/styrene-lab/omegon-armory/blob/main/docs/oci-registry-stack.md">docs/oci-registry-stack.md</a>.
+    </p>
+  </section>
+</BaseLayout>

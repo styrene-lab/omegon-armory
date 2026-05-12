@@ -16,6 +16,14 @@ Publish after logging in with ORAS:
 python3 scripts/publish-oci-artifacts.py --sign
 ```
 
+Run the public catalog site locally:
+
+```bash
+cd site
+npm install
+npm run dev
+```
+
 ## Extensions
 
 Install extensions by name:

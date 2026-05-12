@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PackageTable from "../components/PackageTable.astro";
+import data from "../data/armory.json";
+import type { ArmoryItem, ArmoryKind } from "../types";
+
+export function getStaticPaths() {
+  const kinds = ["extensions", "skills", "personas", "tones", "agents"];
+  return kinds.map((kind) => ({ params: { kind } }));
+}
+
+const plural = Astro.params.kind;
+const singular = plural?.replace(/s$/, "") as ArmoryKind;
+const items = (data.items as ArmoryItem[]).filter((item) => item.kind === singular);
+const title = plural ? plural[0].toUpperCase() + plural.slice(1) : "Packages";
+---
+
+<BaseLayout title={`${title} | Omegon Armory`}>
+  <PackageTable
+    items={items}
+    title={title}
+    intro={`Browse ${plural} available in the Omegon Armory.`}
+    activeKind={singular}
+  />
+</BaseLayout>

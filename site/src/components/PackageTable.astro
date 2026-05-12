@@ -1,0 +1,112 @@
+---
+import type { ArmoryItem } from "../types";
+
+type Props = {
+  items: ArmoryItem[];
+  title?: string;
+  intro?: string;
+  activeKind?: string;
+};
+
+const { items, title = "Packages", intro, activeKind = "all" } = Astro.props;
+const categories = Array.from(new Set(items.map((item) => item.category).filter(Boolean))).sort();
+const kinds = ["all", "extension", "skill", "persona", "tone", "agent"];
+---
+
+<section class="catalog-shell" data-catalog>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Catalog</p>
+      <h1>{title}</h1>
+      {intro && <p>{intro}</p>}
+    </div>
+    <div class="count" data-count>{items.length} packages</div>
+  </div>
+
+  <div class="toolbar" aria-label="Catalog controls">
+    <label class="search-control">
+      <span>Search</span>
+      <input data-search type="search" placeholder="name, category, description, ref" autocomplete="off" />
+    </label>
+    <label>
+      <span>Kind</span>
+      <select data-kind>
+        {kinds.map((kind) => <option value={kind} selected={kind === activeKind}>{kind}</option>)}
+      </select>
+    </label>
+    <label>
+      <span>Category</span>
+      <select data-category>
+        <option value="all">all</option>
+        {categories.map((category) => <option value={category}>{category}</option>)}
+      </select>
+    </label>
+  </div>
+
+  <div class="package-table" role="table" aria-label="Armory package catalog">
+    <div class="table-row table-head" role="row">
+      <span>Name</span>
+      <span>Kind</span>
+      <span>Category</span>
+      <span>Version</span>
+      <span>Install</span>
+    </div>
+    {items.map((item) => (
+      <a
+        class="table-row package-row"
+        role="row"
+        href={`/packages/${item.kind}/${item.id}`}
+        data-row
+        data-kind={item.kind}
+        data-category={item.category}
+        data-search={`${item.name} ${item.id} ${item.kind} ${item.category} ${item.description} ${item.ociRef ?? ""}`}
+      >
+        <span>
+          <strong>{item.name}</strong>
+          <small>{item.description}</small>
+        </span>
+        <span><code>{item.kind}</code></span>
+        <span>{item.category}</span>
+        <span>{item.version}</span>
+        <span><code>{item.installCommand}</code></span>
+      </a>
+    ))}
+  </div>
+  <p class="empty-state" data-empty hidden>No packages match the current filters.</p>
+</section>
+
+<script>
+  const root = document.querySelector("[data-catalog]");
+  if (root) {
+    const search = root.querySelector("[data-search]");
+    const kind = root.querySelector("[data-kind]");
+    const category = root.querySelector("[data-category]");
+    const rows = Array.from(root.querySelectorAll("[data-row]"));
+    const count = root.querySelector("[data-count]");
+    const empty = root.querySelector("[data-empty]");
+
+    const apply = () => {
+      const q = search.value.trim().toLowerCase();
+      const selectedKind = kind.value;
+      const selectedCategory = category.value;
+      let visible = 0;
+
+      for (const row of rows) {
+        const matchesSearch = !q || row.dataset.search.toLowerCase().includes(q);
+        const matchesKind = selectedKind === "all" || row.dataset.kind === selectedKind;
+        const matchesCategory = selectedCategory === "all" || row.dataset.category === selectedCategory;
+        const show = matchesSearch && matchesKind && matchesCategory;
+        row.hidden = !show;
+        if (show) visible += 1;
+      }
+
+      count.textContent = `${visible} package${visible === 1 ? "" : "s"}`;
+      empty.hidden = visible !== 0;
+    };
+
+    search.addEventListener("input", apply);
+    kind.addEventListener("change", apply);
+    category.addEventListener("change", apply);
+    apply();
+  }
+</script>

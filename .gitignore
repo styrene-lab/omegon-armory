@@ -3,3 +3,9 @@
 *~
 dist/
 __pycache__/
+site/.astro/
+site/.cache/
+site/dist/
+site/node_modules/
+site/public/api/index.json
+site/src/data/armory.json

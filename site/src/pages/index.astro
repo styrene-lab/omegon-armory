@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PackageTable from "../components/PackageTable.astro";
+import data from "../data/armory.json";
+import type { ArmoryItem } from "../types";
+
+const items = data.items as ArmoryItem[];
+const stats = {
+  extensions: items.filter((item) => item.kind === "extension").length,
+  skills: items.filter((item) => item.kind === "skill").length,
+  personas: items.filter((item) => item.kind === "persona").length,
+  tones: items.filter((item) => item.kind === "tone").length,
+  agents: items.filter((item) => item.kind === "agent").length
+};
+---
+
+<BaseLayout>
+  <section class="overview-band">
+    <div>
+      <p class="eyebrow">Omegon ecosystem catalog</p>
+      <h1>Browse extensions, skills, personas, tones, and agent bundles.</h1>
+      <p>
+        Armory packages are reviewed in GitHub and distributed as OCI artifacts with reproducible
+        refs, payload digests, and verification commands.
+      </p>
+    </div>
+    <dl class="stats-grid">
+      <div><dt>Extensions</dt><dd>{stats.extensions}</dd></div>
+      <div><dt>Skills</dt><dd>{stats.skills}</dd></div>
+      <div><dt>Personas</dt><dd>{stats.personas}</dd></div>
+      <div><dt>Tones</dt><dd>{stats.tones}</dd></div>
+      <div><dt>Agents</dt><dd>{stats.agents}</dd></div>
+    </dl>
+  </section>
+
+  <PackageTable
+    items={items}
+    title="Armory Packages"
+    intro="Filter the catalog, inspect package metadata, then install from Omegon or verify directly with ORAS and cosign."
+  />
+</BaseLayout>

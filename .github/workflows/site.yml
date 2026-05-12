@@ -1,0 +1,70 @@
+name: Deploy Armory Site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - catalog/**
+      - catalog-registry.toml
+      - extensions/**
+      - personas/**
+      - registry.toml
+      - scripts/build-oci-artifacts.py
+      - scripts/generate-site-data.py
+      - site/**
+      - skills/**
+      - tones/**
+      - .github/workflows/site.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - catalog/**
+      - catalog-registry.toml
+      - extensions/**
+      - personas/**
+      - registry.toml
+      - scripts/build-oci-artifacts.py
+      - scripts/generate-site-data.py
+      - site/**
+      - skills/**
+      - tones/**
+      - .github/workflows/site.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install dependencies
+        working-directory: site
+        run: npm ci
+
+      - name: Build site
+        working-directory: site
+        run: npm run build
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: armory-site
+          path: site/dist
+
+      - name: Deploy to Cloudflare Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site/dist --project-name=omegon-armory

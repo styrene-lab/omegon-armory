@@ -1,0 +1,17 @@
+{
+  "name": "@styrene/omegon-armory-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "cd .. && python3 scripts/build-oci-artifacts.py --out site/.cache/oci && python3 scripts/generate-site-data.py --oci site/.cache/oci --out site/src/data/armory.json --api site/public/api/index.json",
+    "dev": "npm run generate && astro dev --host 127.0.0.1",
+    "build": "npm run generate && astro build",
+    "preview": "astro preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.6.0",
+    "astro": "^6.3.1"
+  },
+  "devDependencies": {}
+}

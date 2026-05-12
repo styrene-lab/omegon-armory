@@ -1,0 +1,50 @@
+---
+type Props = {
+  title?: string;
+  description?: string;
+};
+
+const {
+  title = "Omegon Armory",
+  description = "Browse verified Omegon extensions, skills, personas, tones, and agent bundles."
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles/global.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Omegon Armory home">
+        <span class="brand-mark">O</span>
+        <span>
+          <strong>Omegon Armory</strong>
+          <small>Verified agent ecosystem packages</small>
+        </span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="/extensions">Extensions</a>
+        <a href="/skills">Skills</a>
+        <a href="/personas">Personas</a>
+        <a href="/tones">Tones</a>
+        <a href="/agents">Agents</a>
+        <a href="/docs/oci-registry-stack">Self-host</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <span>Source reviewed in GitHub. Distributed through OCI registries.</span>
+      <a href="https://github.com/styrene-lab/omegon-armory">GitHub</a>
+      <a href="/api/index.json">Index JSON</a>
+    </footer>
+  </body>
+</html>

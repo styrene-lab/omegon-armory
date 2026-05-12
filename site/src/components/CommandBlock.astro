@@ -1,0 +1,13 @@
+---
+type Props = {
+  label: string;
+  command: string;
+};
+
+const { label, command } = Astro.props;
+---
+
+<div class="command-block">
+  <div>{label}</div>
+  <pre><code>{command}</code></pre>
+</div>
