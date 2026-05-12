@@ -14,15 +14,6 @@
 
 # ── First-party extensions (Styrene Lab) ────────────────────────────────────
 
-[scribe]
-enabled = false
-repo = "https://github.com/styrene-lab/scribe"
-description = "Forge sync engine — bidirectional issue/task sync with GitHub, Forgejo, and GitLab. OAuth2 auth, git credential helper, optional codex vault integration."
-category = "forge"
-maintainer = "Black Meridian"
-license = "MIT"
-min_sdk = "0.15"
-
 [scry]
 enabled = false
 repo = "https://github.com/styrene-lab/scry"
