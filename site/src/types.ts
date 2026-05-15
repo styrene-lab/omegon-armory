@@ -28,7 +28,17 @@ export type ArmoryItem = {
   capabilities: string[];
   keywords: string[];
   files: string[];
+  dependencies: ArmoryDependency[];
   distribution: ArmoryDistribution;
+};
+
+export type ArmoryDependency = {
+  kind: ArmoryKind;
+  id: string;
+  version?: string;
+  required: boolean;
+  enabled?: boolean;
+  installCommand?: string;
 };
 
 export type ArmoryData = {

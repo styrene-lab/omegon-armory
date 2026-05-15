@@ -443,6 +443,11 @@ select {
   color: var(--warn);
 }
 
+.badge-warning {
+  border-color: rgba(251, 191, 36, 0.45);
+  color: var(--warn);
+}
+
 .package-card p {
   color: var(--muted);
   line-height: 1.5;
@@ -477,6 +482,38 @@ select {
   color: var(--soft);
   font-size: 13px;
   padding: 6px 10px;
+}
+
+.dependency-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+
+.dependency-card {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 12px;
+}
+
+.dependency-card strong,
+.dependency-card span {
+  display: block;
+}
+
+.dependency-card span {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.dependency-card code {
+  grid-column: 1 / -1;
 }
 
 .package-card-side {

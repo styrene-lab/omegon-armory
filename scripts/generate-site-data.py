@@ -119,6 +119,7 @@ def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                     "capabilities": plugin_capabilities(kind, manifest),
                     "keywords": keywords(kind, slug, plugin["name"], plugin["description"]),
                     "files": iter_files(item_dir),
+                    "dependencies": [],
                     "distribution": "oci" if oci_ref else "registry",
                 }
             )
@@ -128,15 +129,20 @@ def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
 
 def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
     registry_path = repo / "catalog-registry.toml"
+    extension_registry_path = repo / "registry.toml"
     if not registry_path.exists():
         return []
     registry = load_toml(registry_path)
+    extension_registry = load_toml(extension_registry_path) if extension_registry_path.exists() else {}
     items = []
 
     for agent_id, entry in sorted(registry.items()):
         if not isinstance(entry, dict):
             continue
         source_path = f"catalog/{agent_id}"
+        agent_manifest_path = repo / source_path / "agent.toml"
+        agent_manifest = load_toml(agent_manifest_path) if agent_manifest_path.exists() else {}
+        dependencies = agent_dependencies(agent_manifest, extension_registry)
         oci_item = oci.get(("agent", agent_id), {})
         oci_ref = oci_item.get("ref")
         repo_url = REPO_URL
@@ -167,6 +173,7 @@ def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                 "capabilities": agent_capabilities(entry),
                 "keywords": keywords("agent", agent_id, entry["domain"], entry["description"]),
                 "files": entry.get("files", iter_files(repo / source_path)),
+                "dependencies": dependencies,
                 "distribution": "oci" if oci_ref else "registry",
             }
         )
@@ -219,6 +226,7 @@ def extensions(repo: Path) -> list[dict]:
                 "capabilities": extension_capabilities(detail_path),
                 "keywords": keywords("extension", ext_id, entry["category"], entry["description"]),
                 "files": files,
+                "dependencies": [],
                 "distribution": "registry",
             }
         )
@@ -254,6 +262,24 @@ def agent_capabilities(entry: dict) -> list[str]:
         values.append("pkl")
     if any(file.startswith("mind/") for file in files):
         values.append("memory")
+    return values
+
+
+def agent_dependencies(agent_manifest: dict, extension_registry: dict) -> list[dict]:
+    values = []
+    for extension in agent_manifest.get("extensions", []):
+        name = extension.get("name", "")
+        registry_entry = extension_registry.get(name, {}) if name else {}
+        values.append(
+            {
+                "kind": "extension",
+                "id": name,
+                "version": extension.get("version", ""),
+                "required": True,
+                "enabled": bool(registry_entry.get("enabled", False)),
+                "installCommand": f"omegon extension install {name}" if name else "",
+            }
+        )
     return values
 
 

@@ -347,6 +347,7 @@ describe('catalog agent entries', () => {
       assert.match(entry.version, /^\d+\.\d+\.\d+$/);
       assert.ok(VALID_AGENT_DOMAINS.has(entry.domain), `${entry.id}: invalid domain`);
       assert.ok(Array.isArray(entry.files), `${entry.id}: files must be an array`);
+      assert.ok(entry.files.includes('agent.pkl'), `${entry.id}: missing agent.pkl in registry`);
       assert.ok(entry.files.includes('agent.toml'), `${entry.id}: missing agent.toml in registry`);
       assert.ok(entry.files.includes('PERSONA.md'), `${entry.id}: missing PERSONA.md in registry`);
 
@@ -361,6 +362,14 @@ describe('catalog agent entries', () => {
       const agent = parseToml(readText(`catalog/${entry.id}/agent.toml`));
       assert.equal(agent.agent?.id, entry.id);
       assert.equal(agent.agent?.name, entry.name);
+
+      const pkl = readText(`catalog/${entry.id}/agent.pkl`);
+      assert.match(pkl, /amends "omegon:\/\/schema\/AgentManifest\.pkl"/);
+      assert.match(pkl, new RegExp(`id = "${entry.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
+      assert.match(pkl, new RegExp(`name = "${entry.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
+      for (const extension of agent.extensions || []) {
+        assert.match(pkl, new RegExp(`name = "${extension.name}"`), `${entry.id}: agent.pkl missing extension ${extension.name}`);
+      }
     });
   }
 });

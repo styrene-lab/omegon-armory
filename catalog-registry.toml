@@ -26,14 +26,14 @@ name = "Software Engineer"
 version = "1.0.0"
 domain = "coding"
 description = "General-purpose software engineering agent for code review, feature implementation, bug investigation, and refactoring across any language or framework."
-files = ["agent.toml", "PERSONA.md", "mind/facts.jsonl"]
+files = ["agent.toml", "agent.pkl", "PERSONA.md", "mind/facts.jsonl"]
 
 ["styrene.community-agent"]
 name = "Styrene Community Agent"
 version = "1.0.0"
 domain = "coding"
 description = "Styrene project agent for Discord. Familiar with the styrene-lab ecosystem: omegon, vox, styrened, auspex, RNS/LXMF mesh networking, and edge device provisioning."
-files = ["agent.toml", "PERSONA.md", "mind/facts.jsonl"]
+files = ["agent.toml", "agent.pkl", "PERSONA.md", "mind/facts.jsonl"]
 
 ["styrene.discord-agent"]
 name = "Discord Agent"
@@ -47,7 +47,7 @@ name = "Infrastructure Engineer"
 version = "1.0.0"
 domain = "infra"
 description = "Kubernetes cluster management, deployment automation, Helm chart authoring, incident response, and infrastructure observability."
-files = ["agent.toml", "PERSONA.md", "mind/facts.jsonl"]
+files = ["agent.toml", "agent.pkl", "PERSONA.md", "mind/facts.jsonl"]
 
 ["styrene.slack-agent"]
 name = "Slack Agent"

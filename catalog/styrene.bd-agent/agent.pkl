@@ -30,6 +30,22 @@ settings {
 
 workflow {
   name = "doc-standard"
+  phases {
+    new {
+      name = "drafting"
+      model = "anthropic:claude-sonnet-4-6"
+      thinking_level = "low"
+      max_turns = 40
+    }
+  }
+  phases {
+    new {
+      name = "reviewing"
+      model = "anthropic:claude-sonnet-4-6"
+      thinking_level = "medium"
+      max_turns = 20
+    }
+  }
 }
 
 secrets {

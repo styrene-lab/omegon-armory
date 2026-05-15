@@ -1,0 +1,65 @@
+amends "omegon://schema/AgentManifest.pkl"
+
+agent {
+  id = "styrene.coding-agent"
+  name = "Software Engineer"
+  version = "1.0.0"
+  description = "General-purpose software engineering agent for code review, feature implementation, bug investigation, and refactoring across any language or framework."
+  domain = "coding"
+}
+
+persona {
+  directive = "PERSONA.md"
+  badge = "dev"
+  mind_facts { "mind/facts.jsonl" }
+}
+
+extensions {
+  new {
+    name = "vox"
+    version = ">=0.3.0"
+  }
+  new {
+    name = "scry"
+    version = ">=0.1.0"
+  }
+}
+
+settings {
+  model = "anthropic:claude-sonnet-4-6"
+  thinking_level = "low"
+  context_class = "squad"
+  max_turns = 50
+}
+
+workflow {
+  name = "standard"
+  phases {
+    new {
+      name = "exploring"
+      model = "anthropic:claude-opus-4-6"
+      thinking_level = "high"
+      max_turns = 20
+    }
+  }
+  phases {
+    new {
+      name = "implementing"
+      model = "anthropic:claude-sonnet-4-6"
+      max_turns = 60
+    }
+  }
+  phases {
+    new {
+      name = "verifying"
+      model = "anthropic:claude-sonnet-4-6"
+      thinking_level = "medium"
+      max_turns = 20
+    }
+  }
+}
+
+secrets {
+  required { "ANTHROPIC_API_KEY" }
+  optional { "GITHUB_TOKEN"; "VOX_SLACK_BOT_TOKEN"; "VOX_DISCORD_BOT_TOKEN" }
+}

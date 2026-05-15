@@ -67,6 +67,24 @@ const hasDistinctHomepage =
           </>
         )}
 
+        {item.dependencies.length > 0 && (
+          <>
+            <h2>Dependencies</h2>
+            <div class="dependency-list">
+              {item.dependencies.map((dependency) => (
+                <div class="dependency-card">
+                  <div>
+                    <strong>{dependency.id}</strong>
+                    <span>{dependency.kind}{dependency.version ? ` ${dependency.version}` : ""}</span>
+                  </div>
+                  {dependency.enabled === false && <span class="badge badge-warning">not enabled</span>}
+                  {dependency.installCommand && <code>{dependency.installCommand}</code>}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
         <h2>Included Files</h2>
         <ul class="file-list">
           {item.files.map((file) => <li><code>{file}</code></li>)}
