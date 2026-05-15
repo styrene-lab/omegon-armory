@@ -5,14 +5,12 @@ type Props = {
   items: ArmoryItem[];
   title?: string;
   intro?: string;
-  activeKind?: string;
 };
 
-const { items, title = "Packages", intro, activeKind = "all" } = Astro.props;
+const { items, title = "Packages", intro } = Astro.props;
 const categories = Array.from(new Set(items.map((item) => item.category).filter(Boolean))).sort();
 const licenses = Array.from(new Set(items.map((item) => item.license).filter(Boolean))).sort();
 const publishers = Array.from(new Set(items.map((item) => item.publisher).filter(Boolean))).sort();
-const kinds = ["all", "extension", "skill", "persona", "tone", "agent"];
 
 const countBy = (field: keyof ArmoryItem, value: string) =>
   items.filter((item) => item[field] === value).length;
@@ -35,19 +33,8 @@ const hasDistinctRepository = (item: ArmoryItem) =>
     <aside class="filter-panel" aria-label="Package filters">
       <label class="search-control">
         <span>Search packages</span>
-        <input data-search type="search" placeholder="Search by name, kind, ref, capability" autocomplete="off" />
+        <input data-search type="search" placeholder="Search by name, category, ref, capability" autocomplete="off" />
       </label>
-
-      <fieldset>
-        <legend>Kind</legend>
-        {kinds.map((kind) => (
-          <label class="check-row">
-            <input data-kind type="checkbox" value={kind} checked={kind === activeKind || (activeKind === "all" && kind === "all")} />
-            <span>{kind}</span>
-            <small>{kind === "all" ? items.length : countBy("kind", kind)}</small>
-          </label>
-        ))}
-      </fieldset>
 
       <fieldset>
         <legend>Distribution</legend>
@@ -152,7 +139,6 @@ const hasDistinctRepository = (item: ArmoryItem) =>
     const root = document.querySelector("[data-catalog]");
     if (root) {
     const search = root.querySelector("[data-search]");
-    const kindInputs = Array.from(root.querySelectorAll("[data-kind]"));
     const categoryInputs = Array.from(root.querySelectorAll("[data-category]"));
     const distributionInputs = Array.from(root.querySelectorAll("[data-distribution]"));
     const publisherInputs = Array.from(root.querySelectorAll("[data-publisher]"));
@@ -166,8 +152,6 @@ const hasDistinctRepository = (item: ArmoryItem) =>
 
     const apply = () => {
       const q = search.value.trim().toLowerCase();
-      const selectedKindsRaw = selected(kindInputs);
-      const selectedKinds = selectedKindsRaw.includes("all") ? [] : selectedKindsRaw;
       const selectedCategories = selected(categoryInputs);
       const selectedDistributions = selected(distributionInputs);
       const selectedPublishers = selected(publisherInputs);
@@ -176,12 +160,11 @@ const hasDistinctRepository = (item: ArmoryItem) =>
 
       for (const row of rows) {
         const matchesSearch = !q || row.dataset.search.toLowerCase().includes(q);
-        const matchesKind = anyMatches(selectedKinds, row.dataset.kind);
         const matchesCategory = anyMatches(selectedCategories, row.dataset.category);
         const matchesDistribution = anyMatches(selectedDistributions, row.dataset.distribution);
         const matchesPublisher = anyMatches(selectedPublishers, row.dataset.publisher);
         const matchesLicense = anyMatches(selectedLicenses, row.dataset.license);
-        const show = matchesSearch && matchesKind && matchesCategory && matchesDistribution && matchesPublisher && matchesLicense;
+        const show = matchesSearch && matchesCategory && matchesDistribution && matchesPublisher && matchesLicense;
         row.hidden = !show;
         if (show) visible += 1;
       }
@@ -191,18 +174,8 @@ const hasDistinctRepository = (item: ArmoryItem) =>
     };
 
     search.addEventListener("input", apply);
-    for (const input of [...kindInputs, ...categoryInputs, ...distributionInputs, ...publisherInputs, ...licenseInputs]) {
-      input.addEventListener("change", () => {
-        if (input.dataset.kind !== undefined && input.value === "all" && input.checked) {
-          for (const other of kindInputs) {
-            if (other !== input) other.checked = false;
-          }
-        } else if (input.dataset.kind !== undefined && input.checked) {
-          const all = kindInputs.find((candidate) => candidate.value === "all");
-          if (all) all.checked = false;
-        }
-        apply();
-      });
+    for (const input of [...categoryInputs, ...distributionInputs, ...publisherInputs, ...licenseInputs]) {
+      input.addEventListener("change", apply);
     }
     apply();
   }

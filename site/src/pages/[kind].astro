@@ -19,7 +19,6 @@ const title = plural ? plural[0].toUpperCase() + plural.slice(1) : "Packages";
   <PackageTable
     items={items}
     title={title}
-    intro={`Browse ${plural} available in the Omegon Armory.`}
-    activeKind={singular}
+    intro={`Showing ${plural} available in the Omegon Armory. Use the sidebar to refine by distribution, category, publisher, and license.`}
   />
 </BaseLayout>
