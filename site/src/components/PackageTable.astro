@@ -98,6 +98,9 @@ const hasDistinctRepository = (item: ArmoryItem) =>
             <div class="package-title-row">
               <a href={`/packages/${item.kind}/${item.id}`} class="package-title">{item.name}</a>
               <span class="badge">{item.kind}</span>
+              <span class={`badge ${item.distribution === "oci" ? "badge-oci" : "badge-registry"}`}>
+                {item.distribution === "oci" ? "OCI artifact" : "Registry install"}
+              </span>
               {item.official && <span class="badge badge-verified">Official</span>}
             </div>
             <p>{item.description}</p>

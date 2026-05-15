@@ -20,8 +20,9 @@ const stats = {
       <p class="eyebrow">Omegon ecosystem catalog</p>
       <h1>Browse extensions, skills, personas, tones, and agent bundles.</h1>
       <p>
-        Armory packages are reviewed in GitHub and distributed as OCI artifacts with reproducible
-        refs, payload digests, and verification commands.
+        Armory entries are reviewed in GitHub. Skills, personas, tones, and agent bundles are
+        published as signed OCI artifacts; extensions resolve through the Omegon extension
+        registry to their upstream release metadata.
       </p>
     </div>
     <dl class="stats-grid">
@@ -36,6 +37,6 @@ const stats = {
   <PackageTable
     items={items}
     title="Armory Packages"
-    intro="Filter the catalog, inspect package metadata, then install from Omegon or verify directly with ORAS and cosign."
+    intro="Filter the catalog, inspect package metadata, then install from Omegon. OCI-backed entries include ORAS pull refs, payload digests, and cosign verification commands."
   />
 </BaseLayout>

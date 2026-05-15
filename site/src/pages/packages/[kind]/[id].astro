@@ -37,6 +37,7 @@ const hasDistinctHomepage =
       <dl class="metadata-panel">
         <div><dt>Version</dt><dd>{item.version}</dd></div>
         <div><dt>Kind</dt><dd>{item.kind}</dd></div>
+        <div><dt>Distribution</dt><dd>{item.distribution === "oci" ? "OCI artifact" : "Extension registry"}</dd></div>
         <div><dt>Publisher</dt><dd>{item.publisher}</dd></div>
         {item.official && <div><dt>Status</dt><dd>Official</dd></div>}
         {item.license && <div><dt>License</dt><dd>{item.license}</dd></div>}
@@ -49,6 +50,11 @@ const hasDistinctHomepage =
         <h2>Install</h2>
         <CommandBlock label="Omegon" command={item.installCommand} />
         <p class="install-note large">{item.installNote}</p>
+        {item.distribution === "registry" && (
+          <p class="distribution-note">
+            This extension is resolved by the Omegon extension registry and installed from its upstream repository/release metadata.
+          </p>
+        )}
         {item.ociRef && <CommandBlock label="OCI pull" command={`oras pull ${item.ociRef}`} />}
         {item.verifyCommand && <CommandBlock label="Verify signature" command={item.verifyCommand} />}
 
@@ -73,6 +79,7 @@ const hasDistinctHomepage =
           <div><dt>Source</dt><dd><a href={item.sourceUrl}>{item.sourceUrl}</a></dd></div>
           {hasDistinctRepository && <div><dt>Repository</dt><dd><a href={item.repositoryUrl}>{item.repositoryUrl}</a></dd></div>}
           <div><dt>Armory Metadata</dt><dd><a href={item.armoryUrl}>{item.sourcePath}</a></dd></div>
+          <div><dt>Distribution</dt><dd>{item.distribution === "oci" ? "OCI artifact" : "Extension registry"}</dd></div>
           {item.manifestId && <div><dt>Manifest ID</dt><dd><code>{item.manifestId}</code></dd></div>}
           {item.ociRef && <div><dt>OCI Ref</dt><dd><code>{item.ociRef}</code></dd></div>}
           {item.artifactType && <div><dt>Artifact Type</dt><dd><code>{item.artifactType}</code></dd></div>}

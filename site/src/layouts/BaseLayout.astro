@@ -6,7 +6,7 @@ type Props = {
 
 const {
   title = "Omegon Armory",
-  description = "Browse verified Omegon extensions, skills, personas, tones, and agent bundles."
+  description = "Browse reviewed Omegon extensions, skills, personas, tones, and agent bundles."
 } = Astro.props;
 ---
 
@@ -26,7 +26,7 @@ const {
         <span class="brand-mark">O</span>
         <span>
           <strong>Omegon Armory</strong>
-          <small>Verified agent ecosystem packages</small>
+          <small>Reviewed agent ecosystem packages</small>
         </span>
       </a>
       <nav aria-label="Primary navigation">
@@ -42,7 +42,7 @@ const {
       <slot />
     </main>
     <footer class="site-footer">
-      <span>Source reviewed in GitHub. Distributed through OCI registries.</span>
+      <span>Source reviewed in GitHub. OCI artifacts and registry-resolved extensions.</span>
       <a href="https://github.com/styrene-lab/omegon-armory">GitHub</a>
       <a href="/api/index.json">Index JSON</a>
     </footer>

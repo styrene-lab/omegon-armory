@@ -26,4 +26,5 @@ export type ArmoryItem = {
   capabilities: string[];
   keywords: string[];
   files: string[];
+  distribution: "oci" | "registry";
 };

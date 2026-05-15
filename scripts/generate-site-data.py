@@ -119,6 +119,7 @@ def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                     "capabilities": plugin_capabilities(kind, manifest),
                     "keywords": keywords(kind, slug, plugin["name"], plugin["description"]),
                     "files": iter_files(item_dir),
+                    "distribution": "oci" if oci_ref else "registry",
                 }
             )
 
@@ -166,6 +167,7 @@ def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                 "capabilities": agent_capabilities(entry),
                 "keywords": keywords("agent", agent_id, entry["domain"], entry["description"]),
                 "files": entry.get("files", iter_files(repo / source_path)),
+                "distribution": "oci" if oci_ref else "registry",
             }
         )
 
@@ -217,6 +219,7 @@ def extensions(repo: Path) -> list[dict]:
                 "capabilities": extension_capabilities(detail_path),
                 "keywords": keywords("extension", ext_id, entry["category"], entry["description"]),
                 "files": files,
+                "distribution": "registry",
             }
         )
 
