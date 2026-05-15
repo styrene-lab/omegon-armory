@@ -7,6 +7,8 @@ maintainer = "Black Meridian"
 license = "MIT"
 min_sdk = "0.15"
 homepage = "https://github.com/styrene-lab/vox"
+manifest_path = "manifest.toml"
+asset_prefix = "vox"
 
 [tools]
 vox_reply = "Send a response through the originating communication channel"

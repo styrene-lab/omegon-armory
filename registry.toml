@@ -31,6 +31,8 @@ category = "comms"
 maintainer = "Black Meridian"
 license = "MIT"
 min_sdk = "0.15"
+manifest_path = "manifest.toml"
+asset_prefix = "vox"
 
 [flynt]
 enabled = true
