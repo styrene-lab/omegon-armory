@@ -80,6 +80,38 @@ jobs:
             --out dist/oci \
             --sign
 
+      - name: Smoke published OCI index
+        if: steps.registry.outputs.dry_run != 'true'
+        run: |
+          REGISTRY="${{ steps.registry.outputs.value }}"
+          oras manifest fetch "$REGISTRY/index:latest" >/tmp/armory-index-manifest.json
+          rm -rf /tmp/armory-index-smoke
+          mkdir -p /tmp/armory-index-smoke
+          oras pull "$REGISTRY/index:latest" --output /tmp/armory-index-smoke
+          test -f /tmp/armory-index-smoke/index.json
+
+      - name: Smoke representative published artifacts
+        if: steps.registry.outputs.dry_run != 'true'
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          index = json.load(open('dist/oci/index.json'))
+          seen = set()
+          refs = []
+          for item in index['items']:
+              kind = item['kind']
+              if kind in seen:
+                  continue
+              seen.add(kind)
+              refs.append(item['ref'])
+          for ref in refs:
+              print(f'+ oras manifest fetch {ref}')
+              subprocess.run(['oras', 'manifest', 'fetch', ref], check=True, stdout=subprocess.DEVNULL)
+          PY
+
       - name: Dry run publish commands
         if: steps.registry.outputs.dry_run == 'true'
         run: |

@@ -1,0 +1,47 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Armory Operations | Omegon Armory" description="Operational runbook for publishing and maintaining the Omegon Armory registry and site.">
+  <article class="docs-page">
+    <p class="eyebrow">Operations</p>
+    <h1>Armory Operations</h1>
+    <p>
+      The public Armory is maintained as a registry pipeline: GitHub is the reviewed source of
+      truth, GHCR is the signed OCI distribution plane, and Cloudflare Pages serves the human
+      catalog plus static API.
+    </p>
+
+    <h2>Production surfaces</h2>
+    <ul>
+      <li><strong>Catalog:</strong> <code>https://armory.styrene.io</code></li>
+      <li><strong>Catalog API:</strong> <code>https://armory.styrene.io/api/index.json</code></li>
+      <li><strong>OCI namespace:</strong> <code>ghcr.io/styrene-lab/omegon-armory</code></li>
+      <li><strong>Source:</strong> <code>github.com/styrene-lab/omegon-armory</code></li>
+    </ul>
+
+    <h2>Maintenance model</h2>
+    <p>
+      Operators edit manifests and package source files. The site, catalog API, OCI index, and
+      static pages are generated from those inputs. Generated JSON and build output are artifacts,
+      not hand-maintained source of truth.
+    </p>
+
+    <h2>Validation</h2>
+    <pre><code>node --test tests/armory-entry-suite.mjs
+cd site &amp;&amp; npm run build</code></pre>
+
+    <h2>Deployment</h2>
+    <p>
+      The site workflow publishes <code>site/dist</code> to Cloudflare Pages. The OCI workflow builds
+      artifacts, pushes them with ORAS, signs them with cosign, then smokes the published index and
+      representative package manifests.
+    </p>
+
+    <h2>Full runbook</h2>
+    <p>
+      The repository runbook is maintained in
+      <a href="https://github.com/styrene-lab/omegon-armory/blob/main/docs/armory-operations.md">docs/armory-operations.md</a>.
+    </p>
+  </article>
+</BaseLayout>

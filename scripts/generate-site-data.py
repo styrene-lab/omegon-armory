@@ -282,8 +282,14 @@ def main() -> None:
     items.extend(catalog_agents(repo, oci))
     items.sort(key=lambda item: (item["kind"], item["id"]))
 
+    registry = ""
+    index_path = Path(args.oci) / "index.json"
+    if index_path.exists():
+        registry = json.loads(index_path.read_text()).get("registry", "")
+
     payload = {
         "generatedAt": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat(),
+        "registry": registry,
         "items": items,
     }
 

@@ -2,15 +2,23 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PackageTable from "../components/PackageTable.astro";
 import data from "../data/armory.json";
-import type { ArmoryItem } from "../types";
+import type { ArmoryData, ArmoryItem } from "../types";
 
-const items = data.items as ArmoryItem[];
+const catalog = data as ArmoryData;
+const items = catalog.items as ArmoryItem[];
+const generatedAt = new Date(catalog.generatedAt).toLocaleString("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "UTC"
+});
 const stats = {
   extensions: items.filter((item) => item.kind === "extension").length,
   skills: items.filter((item) => item.kind === "skill").length,
   personas: items.filter((item) => item.kind === "persona").length,
   tones: items.filter((item) => item.kind === "tone").length,
-  agents: items.filter((item) => item.kind === "agent").length
+  agents: items.filter((item) => item.kind === "agent").length,
+  oci: items.filter((item) => item.distribution === "oci").length,
+  registry: items.filter((item) => item.distribution === "registry").length
 };
 ---
 
@@ -31,6 +39,20 @@ const stats = {
       <div><dt>Personas</dt><dd>{stats.personas}</dd></div>
       <div><dt>Tones</dt><dd>{stats.tones}</dd></div>
       <div><dt>Agents</dt><dd>{stats.agents}</dd></div>
+      <div><dt>OCI artifacts</dt><dd>{stats.oci}</dd></div>
+      <div><dt>Registry installs</dt><dd>{stats.registry}</dd></div>
+    </dl>
+  </section>
+
+  <section class="registry-status" aria-label="Registry status">
+    <div>
+      <p class="eyebrow">Distribution</p>
+      <h2>Published from GitHub to Cloudflare Pages and GHCR.</h2>
+    </div>
+    <dl>
+      <div><dt>Catalog API</dt><dd><a href="/api/index.json">/api/index.json</a></dd></div>
+      <div><dt>OCI namespace</dt><dd><code>{catalog.registry || "ghcr.io/styrene-lab/omegon-armory"}</code></dd></div>
+      <div><dt>Generated</dt><dd>{generatedAt}</dd></div>
     </dl>
   </section>
 

@@ -1,3 +1,5 @@
+export type ArmoryDistribution = "oci" | "registry";
+
 export type ArmoryKind = "extension" | "skill" | "persona" | "tone" | "agent";
 
 export type ArmoryItem = {
@@ -26,5 +28,11 @@ export type ArmoryItem = {
   capabilities: string[];
   keywords: string[];
   files: string[];
-  distribution: "oci" | "registry";
+  distribution: ArmoryDistribution;
+};
+
+export type ArmoryData = {
+  generatedAt: string;
+  items: ArmoryItem[];
+  registry: string;
 };
