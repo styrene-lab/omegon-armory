@@ -50,6 +50,20 @@ const hasDistinctRepository = (item: ArmoryItem) =>
       </fieldset>
 
       <fieldset>
+        <legend>Distribution</legend>
+        <label class="check-row">
+          <input data-distribution type="checkbox" value="oci" />
+          <span>OCI artifact</span>
+          <small>{items.filter((item) => item.distribution === "oci").length}</small>
+        </label>
+        <label class="check-row">
+          <input data-distribution type="checkbox" value="registry" />
+          <span>Registry install</span>
+          <small>{items.filter((item) => item.distribution === "registry").length}</small>
+        </label>
+      </fieldset>
+
+      <fieldset>
         <legend>Category</legend>
         {categories.map((category) => (
           <label class="check-row">
@@ -92,6 +106,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
           data-category={item.category}
           data-publisher={item.publisher}
           data-license={item.license ?? ""}
+          data-distribution={item.distribution}
           data-search={`${item.name} ${item.id} ${item.kind} ${item.category} ${item.publisher} ${item.description} ${item.ociRef ?? ""} ${item.capabilities.join(" ")}`}
         >
           <div class="package-card-main">
@@ -139,6 +154,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
     const search = root.querySelector("[data-search]");
     const kindInputs = Array.from(root.querySelectorAll("[data-kind]"));
     const categoryInputs = Array.from(root.querySelectorAll("[data-category]"));
+    const distributionInputs = Array.from(root.querySelectorAll("[data-distribution]"));
     const publisherInputs = Array.from(root.querySelectorAll("[data-publisher]"));
     const licenseInputs = Array.from(root.querySelectorAll("[data-license]"));
     const rows = Array.from(root.querySelectorAll("[data-row]"));
@@ -153,6 +169,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
       const selectedKindsRaw = selected(kindInputs);
       const selectedKinds = selectedKindsRaw.includes("all") ? [] : selectedKindsRaw;
       const selectedCategories = selected(categoryInputs);
+      const selectedDistributions = selected(distributionInputs);
       const selectedPublishers = selected(publisherInputs);
       const selectedLicenses = selected(licenseInputs);
       let visible = 0;
@@ -161,9 +178,10 @@ const hasDistinctRepository = (item: ArmoryItem) =>
         const matchesSearch = !q || row.dataset.search.toLowerCase().includes(q);
         const matchesKind = anyMatches(selectedKinds, row.dataset.kind);
         const matchesCategory = anyMatches(selectedCategories, row.dataset.category);
+        const matchesDistribution = anyMatches(selectedDistributions, row.dataset.distribution);
         const matchesPublisher = anyMatches(selectedPublishers, row.dataset.publisher);
         const matchesLicense = anyMatches(selectedLicenses, row.dataset.license);
-        const show = matchesSearch && matchesKind && matchesCategory && matchesPublisher && matchesLicense;
+        const show = matchesSearch && matchesKind && matchesCategory && matchesDistribution && matchesPublisher && matchesLicense;
         row.hidden = !show;
         if (show) visible += 1;
       }
@@ -173,7 +191,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
     };
 
     search.addEventListener("input", apply);
-    for (const input of [...kindInputs, ...categoryInputs, ...publisherInputs, ...licenseInputs]) {
+    for (const input of [...kindInputs, ...categoryInputs, ...distributionInputs, ...publisherInputs, ...licenseInputs]) {
       input.addEventListener("change", () => {
         if (input.dataset.kind !== undefined && input.value === "all" && input.checked) {
           for (const other of kindInputs) {
