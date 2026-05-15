@@ -1,9 +1,9 @@
 [plugin]
 type = "skill"
-id = "dev.styrene.omegon.skill.security"
-name = "Security"
+id = "dev.styrene.omegon.skill.openspec"
+name = "OpenSpec"
 version = "1.0.0"
-description = "Defensive coding practices for implementation and review"
+description = "Spec-driven development lifecycle for non-trivial changes"
 authors = ["styrene-lab"]
 license = "MIT"
 min_omegon = "0.15.0"

@@ -1,0 +1,12 @@
+[plugin]
+type = "skill"
+id = "dev.styrene.omegon.skill.style"
+name = "Style Guide"
+version = "1.0.0"
+description = "Canonical design system tokens for visual output, themes, and diagrams"
+authors = ["styrene-lab"]
+license = "MIT"
+min_omegon = "0.15.0"
+
+[skill]
+guidance = "SKILL.md"

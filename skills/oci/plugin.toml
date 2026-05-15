@@ -1,0 +1,12 @@
+[plugin]
+type = "skill"
+id = "dev.styrene.omegon.skill.oci"
+name = "OCI"
+version = "1.0.0"
+description = "Conventions for container images, OCI artifacts, and registry operations"
+authors = ["styrene-lab"]
+license = "MIT"
+min_omegon = "0.15.0"
+
+[skill]
+guidance = "SKILL.md"

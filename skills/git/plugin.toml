@@ -1,0 +1,12 @@
+[plugin]
+type = "skill"
+id = "dev.styrene.omegon.skill.git"
+name = "Git"
+version = "1.0.0"
+description = "Conventions for git operations, commit messages, versioning, branching, and changelogs"
+authors = ["styrene-lab"]
+license = "MIT"
+min_omegon = "0.15.0"
+
+[skill]
+guidance = "SKILL.md"

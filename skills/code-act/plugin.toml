@@ -1,0 +1,12 @@
+[plugin]
+type = "skill"
+id = "dev.styrene.omegon.skill.code-act"
+name = "Code-Act"
+version = "1.0.0"
+description = "Generate and execute Python scripts instead of sequential tool calls for batch and pipeline tasks"
+authors = ["styrene-lab"]
+license = "MIT"
+min_omegon = "0.15.0"
+
+[skill]
+guidance = "SKILL.md"

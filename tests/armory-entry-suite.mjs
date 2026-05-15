@@ -241,7 +241,7 @@ const extensions = discoverExtensions();
 
 describe('armory registry inventory', () => {
   it('has the expected public entry counts before publish', () => {
-    assert.equal(plugins.length, 5, 'unexpected plugin/persona/tone/skill count');
+    assert.equal(plugins.length, 14, 'unexpected plugin/persona/tone/skill count');
     assert.equal(catalogEntries.length, 6, 'unexpected agent catalog count');
     assert.equal(extensions.length, 5, 'unexpected extension registry count');
   });
