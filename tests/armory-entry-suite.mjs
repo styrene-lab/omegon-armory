@@ -33,6 +33,7 @@ const VALID_EXTENSION_CATEGORIES = new Set([
   'forge',
   'knowledge',
   'media',
+  'remote',
 ]);
 const VALID_AGENT_DOMAINS = new Set(['chat', 'coding', 'infra', 'ops']);
 
@@ -242,7 +243,7 @@ describe('armory registry inventory', () => {
   it('has the expected public entry counts before publish', () => {
     assert.equal(plugins.length, 5, 'unexpected plugin/persona/tone/skill count');
     assert.equal(catalogEntries.length, 6, 'unexpected agent catalog count');
-    assert.equal(extensions.length, 4, 'unexpected extension registry count');
+    assert.equal(extensions.length, 5, 'unexpected extension registry count');
   });
 
   it('does not retain retired Scribe references in publishable entry surfaces', () => {
@@ -381,9 +382,9 @@ describe('extension registry entries', () => {
     });
   }
 
-  it('only flynt is enabled for the initial publish gate', () => {
+  it('only flynt and shuttle are enabled for the initial publish gate', () => {
     const enabled = extensions.filter((entry) => entry.enabled).map((entry) => entry.id);
-    assert.deepEqual(enabled, ['flynt']);
+    assert.deepEqual(enabled, ['flynt', 'shuttle']);
   });
 });
 
