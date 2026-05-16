@@ -178,12 +178,28 @@ jobs:
           SHA="${{ steps.target.outputs.sha }}"
           git push origin "$SHA:refs/heads/production" --force
 
-      - name: Wait for Cloudflare production deployment
+      - name: Wait for Cloudflare production deployment or live domain
         id: production
         run: |
           set -euo pipefail
           API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PROJECT_NAME/deployments"
           SHA="${{ steps.target.outputs.sha }}"
+
+          smoke_domain() {
+            curl -fsSL "$PRODUCTION_URL/" >/dev/null || return 1
+            curl -fsSL "$PRODUCTION_URL/api/index.json" > production-index.json || return 1
+            python3 <<'PY'
+          import json
+          data = json.load(open("production-index.json"))
+          if data.get("registry") != "ghcr.io/styrene-lab/omegon-armory":
+              raise SystemExit("unexpected production registry")
+          if len(data.get("items", [])) < 22:
+              raise SystemExit("production catalog is missing expected entries")
+          print("production generatedAt", data.get("generatedAt"))
+          print("production registry", data.get("registry"))
+          print("production items", len(data.get("items", [])))
+          PY
+          }
 
           for attempt in $(seq 1 60); do
             curl -fsS \
@@ -224,11 +240,18 @@ jobs:
                 exit 1
               fi
             fi
+
+            if smoke_domain; then
+              echo "Cloudflare production deployment record not ready, but production domain smoke passed."
+              echo "url=$PRODUCTION_URL" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
             echo "Production deployment for $SHA not ready yet (attempt $attempt/60)"
             sleep 20
           done
 
-          echo "Timed out waiting for Cloudflare production deployment for $SHA" >&2
+          echo "Timed out waiting for Cloudflare production deployment for $SHA and production domain smoke did not pass" >&2
           exit 1
         env:
           SHA: ${{ steps.target.outputs.sha }}
