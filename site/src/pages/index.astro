@@ -17,6 +17,7 @@ const stats = {
   personas: items.filter((item) => item.kind === "persona").length,
   tones: items.filter((item) => item.kind === "tone").length,
   agents: items.filter((item) => item.kind === "agent").length,
+  profiles: items.filter((item) => item.kind === "profile").length,
   oci: items.filter((item) => item.distribution === "oci").length,
   registry: items.filter((item) => item.distribution === "registry").length
 };
@@ -26,7 +27,7 @@ const stats = {
   <section class="overview-band">
     <div>
       <p class="eyebrow">Omegon ecosystem catalog</p>
-      <h1>Browse extensions, skills, personas, tones, and agent bundles.</h1>
+      <h1>Browse extensions, skills, personas, tones, profiles, and agent bundles.</h1>
       <p>
         Armory entries are reviewed in GitHub. Skills, personas, tones, and agent bundles are
         published as signed OCI artifacts; extensions resolve through the Omegon extension
@@ -39,6 +40,7 @@ const stats = {
       <div><dt>Personas</dt><dd>{stats.personas}</dd></div>
       <div><dt>Tones</dt><dd>{stats.tones}</dd></div>
       <div><dt>Agents</dt><dd>{stats.agents}</dd></div>
+      <div><dt>Profiles</dt><dd>{stats.profiles}</dd></div>
       <div><dt>OCI artifacts</dt><dd>{stats.oci}</dd></div>
       <div><dt>Registry installs</dt><dd>{stats.registry}</dd></div>
     </dl>

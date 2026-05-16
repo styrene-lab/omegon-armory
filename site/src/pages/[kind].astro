@@ -5,7 +5,7 @@ import data from "../data/armory.json";
 import type { ArmoryItem, ArmoryKind } from "../types";
 
 export function getStaticPaths() {
-  const kinds = ["extensions", "skills", "personas", "tones", "agents"];
+  const kinds = ["extensions", "skills", "personas", "tones", "agents", "profiles"];
   return kinds.map((kind) => ({ params: { kind } }));
 }
 

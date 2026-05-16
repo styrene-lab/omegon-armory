@@ -1,0 +1,58 @@
+[profile]
+id = "dev.styrene.omegon.profile.docs-vault"
+slug = "docs-vault"
+name = "Docs Vault"
+version = "1.0.0"
+description = "Curated documentation and knowledge-base stack for interlinked markdown, architecture notes, diagrams, and repository runbooks."
+category = "knowledge"
+license = "MIT"
+min_omegon = "0.21.0"
+
+[defaults]
+posture = "architect"
+thinking_level = "medium"
+max_turns = 50
+persona = "systems-engineer"
+tone = "concise"
+
+[[dependencies]]
+kind = "persona"
+id = "systems-engineer"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "tone"
+id = "concise"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "skill"
+id = "vault"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "skill"
+id = "style"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "skill"
+id = "git"
+version = ">=1.0.0"
+required = false
+activate = "auto"
+
+[[dependencies]]
+kind = "extension"
+id = "flynt"
+version = ">=0.15"
+required = false
+activate = "manual"

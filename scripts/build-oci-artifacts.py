@@ -20,6 +20,7 @@ MEDIA_TYPES = {
     "persona": "application/vnd.styrene.omegon.persona.v1+tar",
     "tone": "application/vnd.styrene.omegon.tone.v1+tar",
     "agent": "application/vnd.styrene.omegon.agent.v1+tar",
+    "profile": "application/vnd.styrene.omegon.profile.v1+tar",
 }
 
 
@@ -102,6 +103,51 @@ def plugin_items(repo: Path, registry: str, out_dir: Path) -> list[dict]:
                     "annotations": annotations(kind, slug, plugin),
                 }
             )
+
+    return items
+
+
+def profile_items(repo: Path, registry: str, out_dir: Path) -> list[dict]:
+    root = repo / "profiles"
+    if not root.is_dir():
+        return []
+
+    items: list[dict] = []
+    for item_dir in sorted(path for path in root.iterdir() if path.is_dir()):
+        manifest_path = item_dir / "profile.toml"
+        if not manifest_path.exists():
+            continue
+        manifest = load_toml(manifest_path)
+        profile = manifest["profile"]
+        slug = profile.get("slug", item_dir.name)
+        if slug != item_dir.name:
+            raise SystemExit(f"{manifest_path}: profile.slug must match directory name")
+        version = profile["version"]
+        rel_path = f"profiles/{slug}"
+        payload = out_dir / "payloads" / "profiles" / f"{slug}-{version}.tar.gz"
+        files = iter_files(item_dir)
+        write_tarball(item_dir, files, payload)
+        payload_digest = sha256_file(payload)
+        ref = f"{registry}/profiles/{slug}:{version}"
+
+        items.append(
+            {
+                "kind": "profile",
+                "id": slug,
+                "manifest_id": profile["id"],
+                "name": profile["name"],
+                "version": version,
+                "description": profile["description"],
+                "category": profile.get("category", "profile"),
+                "ref": ref,
+                "source_path": rel_path,
+                "payload": str(payload.relative_to(out_dir)),
+                "payload_digest": payload_digest,
+                "artifact_type": MEDIA_TYPES["profile"],
+                "annotations": annotations("profile", slug, profile),
+                "dependencies": manifest.get("dependencies", []),
+            }
+        )
 
     return items
 
@@ -226,6 +272,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     items = plugin_items(repo, args.registry, out_dir)
+    items.extend(profile_items(repo, args.registry, out_dir))
     items.extend(catalog_items(repo, args.registry, out_dir))
     items.sort(key=lambda item: (item["kind"], item["id"]))
     write_index(out_dir, args.registry, items)

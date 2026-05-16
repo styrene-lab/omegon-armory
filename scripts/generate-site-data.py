@@ -19,11 +19,7 @@ def load_toml(path: Path) -> dict:
 
 
 def iter_files(root: Path) -> list[str]:
-    return [
-        str(path.relative_to(root))
-        for path in sorted(root.rglob("*"))
-        if path.is_file()
-    ]
+    return [str(path.relative_to(root)) for path in sorted(root.rglob("*")) if path.is_file()]
 
 
 def source_url(source_path: str) -> str:
@@ -72,6 +68,43 @@ def oci_items(oci_dir: Path) -> dict[tuple[str, str], dict]:
     return {(item["kind"], item["id"]): item for item in data.get("items", [])}
 
 
+def dependency_install_command(dep: dict) -> str:
+    kind = dep.get("kind", "")
+    dep_id = dep.get("id", "")
+    if kind in {"skill", "persona", "tone"}:
+        root = {"skill": "skills", "persona": "personas", "tone": "tones"}[kind]
+        return f"omegon plugin install ./{root}/{dep_id}"
+    if kind == "extension":
+        return f"omegon extension install {dep_id}"
+    if kind == "agent":
+        return "omegon catalog install"
+    if kind == "profile":
+        return f"omegon profile install {dep_id}"
+    return ""
+
+
+def normalize_dependencies(deps: list[dict], enabled_extensions: dict[str, bool] | None = None) -> list[dict]:
+    values = []
+    enabled_extensions = enabled_extensions or {}
+    for dep in deps:
+        kind = dep.get("kind", "")
+        dep_id = dep.get("id", "")
+        enabled = True
+        if kind == "extension":
+            enabled = bool(enabled_extensions.get(dep_id, False))
+        values.append(
+            {
+                "kind": kind,
+                "id": dep_id,
+                "version": dep.get("version", ""),
+                "required": bool(dep.get("required", True)),
+                "enabled": enabled,
+                "installCommand": dependency_install_command(dep),
+            }
+        )
+    return values
+
+
 def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
     items = []
     roots = {"skills": "skill", "personas": "persona", "tones": "tone"}
@@ -90,8 +123,6 @@ def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
             source_path = f"{root_name}/{slug}"
             oci_item = oci.get((kind, slug), {})
             oci_ref = oci_item.get("ref")
-            repo_url = REPO_URL
-
             items.append(
                 {
                     "kind": kind,
@@ -102,7 +133,7 @@ def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                     "category": kind,
                     "sourcePath": source_path,
                     "sourceUrl": source_url(source_path),
-                    "repositoryUrl": repo_url,
+                    "repositoryUrl": REPO_URL,
                     "homepageUrl": source_url(source_path),
                     "armoryUrl": source_url(source_path),
                     "installCommand": plugin_install_command(source_path),
@@ -123,7 +154,61 @@ def plugin_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                     "distribution": "oci" if oci_ref else "registry",
                 }
             )
+    return items
 
+
+def profile_catalog(repo: Path, oci: dict[tuple[str, str], dict], extension_registry: dict) -> list[dict]:
+    root = repo / "profiles"
+    if not root.exists():
+        return []
+    enabled_extensions = {
+        name: bool(entry.get("enabled", False))
+        for name, entry in extension_registry.items()
+        if isinstance(entry, dict)
+    }
+    items = []
+    for item_dir in sorted(path for path in root.iterdir() if path.is_dir()):
+        manifest_path = item_dir / "profile.toml"
+        if not manifest_path.exists():
+            continue
+        manifest = load_toml(manifest_path)
+        profile = manifest["profile"]
+        slug = profile.get("slug", item_dir.name)
+        source_path = f"profiles/{slug}"
+        oci_item = oci.get(("profile", slug), {})
+        oci_ref = oci_item.get("ref")
+        dependencies = normalize_dependencies(manifest.get("dependencies", []), enabled_extensions)
+        items.append(
+            {
+                "kind": "profile",
+                "id": slug,
+                "name": profile["name"],
+                "version": profile["version"],
+                "description": profile["description"],
+                "category": profile.get("category", "profile"),
+                "sourcePath": source_path,
+                "sourceUrl": source_url(source_path),
+                "repositoryUrl": REPO_URL,
+                "homepageUrl": source_url(source_path),
+                "armoryUrl": source_url(source_path),
+                "installCommand": f"omegon profile install {slug}",
+                "installNote": "Profile meta-package. Installs a curated stack of personas, tones, skills, and optional extensions.",
+                "verifyCommand": f"cosign verify {oci_ref}" if oci_ref else "",
+                "ociRef": oci_ref or "",
+                "artifactType": oci_item.get("artifact_type", ""),
+                "payloadDigest": oci_item.get("payload_digest", ""),
+                "manifestId": profile["id"],
+                "license": profile.get("license", "MIT"),
+                "minOmegon": profile.get("min_omegon", ""),
+                "publisher": "Styrene Lab",
+                "official": True,
+                "capabilities": profile_capabilities(manifest),
+                "keywords": keywords("profile", slug, profile.get("category", "profile"), profile["description"]),
+                "files": iter_files(item_dir),
+                "dependencies": dependencies,
+                "distribution": "oci" if oci_ref else "registry",
+            }
+        )
     return items
 
 
@@ -135,7 +220,6 @@ def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
     registry = load_toml(registry_path)
     extension_registry = load_toml(extension_registry_path) if extension_registry_path.exists() else {}
     items = []
-
     for agent_id, entry in sorted(registry.items()):
         if not isinstance(entry, dict):
             continue
@@ -145,7 +229,6 @@ def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
         dependencies = agent_dependencies(agent_manifest, extension_registry)
         oci_item = oci.get(("agent", agent_id), {})
         oci_ref = oci_item.get("ref")
-        repo_url = REPO_URL
         items.append(
             {
                 "kind": "agent",
@@ -156,7 +239,7 @@ def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                 "category": entry["domain"],
                 "sourcePath": source_path,
                 "sourceUrl": source_url(source_path),
-                "repositoryUrl": repo_url,
+                "repositoryUrl": REPO_URL,
                 "homepageUrl": source_url(source_path),
                 "armoryUrl": source_url(source_path),
                 "installCommand": "omegon catalog install",
@@ -177,7 +260,6 @@ def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
                 "distribution": "oci" if oci_ref else "registry",
             }
         )
-
     return items
 
 
@@ -187,11 +269,8 @@ def extensions(repo: Path) -> list[dict]:
         return []
     registry = load_toml(registry_path)
     items = []
-
     for ext_id, entry in sorted(registry.items()):
-        if not isinstance(entry, dict):
-            continue
-        if not entry.get("enabled", True):
+        if not isinstance(entry, dict) or not entry.get("enabled", True):
             continue
         detail_path = repo / "extensions" / f"{ext_id}.toml"
         detail = load_toml(detail_path).get("extension", {}) if detail_path.exists() else {}
@@ -230,7 +309,6 @@ def extensions(repo: Path) -> list[dict]:
                 "distribution": "registry",
             }
         )
-
     return items
 
 
@@ -255,6 +333,19 @@ def plugin_capabilities(kind: str, manifest: dict) -> list[str]:
     return []
 
 
+def profile_capabilities(manifest: dict) -> list[str]:
+    values = ["curated stack"]
+    kinds = []
+    for dep in manifest.get("dependencies", []):
+        kind = dep.get("kind")
+        if kind and kind not in kinds:
+            kinds.append(kind)
+    values.extend(kinds)
+    if any(not dep.get("required", True) for dep in manifest.get("dependencies", [])):
+        values.append("optional deps")
+    return values
+
+
 def agent_capabilities(entry: dict) -> list[str]:
     values = [entry.get("domain", "agent")]
     files = entry.get("files", [])
@@ -266,21 +357,11 @@ def agent_capabilities(entry: dict) -> list[str]:
 
 
 def agent_dependencies(agent_manifest: dict, extension_registry: dict) -> list[dict]:
-    values = []
-    for extension in agent_manifest.get("extensions", []):
-        name = extension.get("name", "")
-        registry_entry = extension_registry.get(name, {}) if name else {}
-        values.append(
-            {
-                "kind": "extension",
-                "id": name,
-                "version": extension.get("version", ""),
-                "required": True,
-                "enabled": bool(registry_entry.get("enabled", False)),
-                "installCommand": f"omegon extension install {name}" if name else "",
-            }
-        )
-    return values
+    return normalize_dependencies(agent_manifest.get("extensions", []), {
+        name: bool(entry.get("enabled", False))
+        for name, entry in extension_registry.items()
+        if isinstance(entry, dict)
+    })
 
 
 def extension_capabilities(detail_path: Path) -> list[str]:
@@ -303,8 +384,11 @@ def main() -> None:
 
     repo = Path.cwd()
     oci = oci_items(Path(args.oci))
+    extension_registry_path = repo / "registry.toml"
+    extension_registry = load_toml(extension_registry_path) if extension_registry_path.exists() else {}
     items = extensions(repo)
     items.extend(plugin_catalog(repo, oci))
+    items.extend(profile_catalog(repo, oci, extension_registry))
     items.extend(catalog_agents(repo, oci))
     items.sort(key=lambda item: (item["kind"], item["id"]))
 

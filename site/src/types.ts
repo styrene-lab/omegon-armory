@@ -1,6 +1,6 @@
 export type ArmoryDistribution = "oci" | "registry";
 
-export type ArmoryKind = "extension" | "skill" | "persona" | "tone" | "agent";
+export type ArmoryKind = "extension" | "skill" | "persona" | "tone" | "agent" | "profile";
 
 export type ArmoryItem = {
   kind: ArmoryKind;

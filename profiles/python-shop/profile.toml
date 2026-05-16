@@ -1,0 +1,72 @@
+[profile]
+id = "dev.styrene.omegon.profile.python-shop"
+slug = "python-shop"
+name = "Python Shop"
+version = "1.0.0"
+description = "Curated Python engineering stack for code review, feature work, testing, packaging, and secure service development."
+category = "engineering"
+license = "MIT"
+min_omegon = "0.21.0"
+
+[defaults]
+posture = "architect"
+thinking_level = "medium"
+max_turns = 50
+persona = "systems-engineer"
+tone = "concise"
+
+[[dependencies]]
+kind = "persona"
+id = "systems-engineer"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "tone"
+id = "concise"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "skill"
+id = "python"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "skill"
+id = "security"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "skill"
+id = "git"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "skill"
+id = "openspec"
+version = ">=1.0.0"
+required = false
+activate = "auto"
+
+[[dependencies]]
+kind = "skill"
+id = "oci"
+version = ">=1.0.0"
+required = false
+activate = "auto"
+
+[[dependencies]]
+kind = "extension"
+id = "flynt"
+version = ">=0.15"
+required = false
+activate = "manual"

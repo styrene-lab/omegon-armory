@@ -1,0 +1,72 @@
+[profile]
+id = "dev.styrene.omegon.profile.security-review"
+slug = "security-review"
+name = "Security Review"
+version = "1.0.0"
+description = "Curated security review stack for defensive code review, dependency scrutiny, deployment checks, and evidence-backed findings."
+category = "review"
+license = "MIT"
+min_omegon = "0.21.0"
+
+[defaults]
+posture = "architect"
+thinking_level = "medium"
+max_turns = 50
+persona = "systems-engineer"
+tone = "concise"
+
+[[dependencies]]
+kind = "persona"
+id = "systems-engineer"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "tone"
+id = "concise"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "skill"
+id = "security"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "skill"
+id = "git"
+version = ">=1.0.0"
+required = true
+activate = "always"
+
+[[dependencies]]
+kind = "skill"
+id = "oci"
+version = ">=1.0.0"
+required = false
+activate = "auto"
+
+[[dependencies]]
+kind = "skill"
+id = "python"
+version = ">=1.0.0"
+required = false
+activate = "auto"
+
+[[dependencies]]
+kind = "skill"
+id = "rust"
+version = ">=1.0.0"
+required = false
+activate = "auto"
+
+[[dependencies]]
+kind = "skill"
+id = "typescript"
+version = ">=1.0.0"
+required = false
+activate = "auto"
