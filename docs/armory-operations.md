@@ -36,6 +36,7 @@ The site and API must remain derived from manifests. Do not hand-edit generated 
 
 See also:
 
+- [Compatibility Model](compatibility.md) — native Omegon semantics, degraded use in other agent hosts, and extension interface strategy.
 - [Public Launch Checklist](public-launch-checklist.md) — release gates and launch smoke tests.
 - [Profile Artifacts](profile-artifacts.md) — profile meta-package shape and OCI representation.
 - [Self-Hosting Omegon Armory](self-hosting.md) — static-only, full mirror, and private/federated deployment modes.
