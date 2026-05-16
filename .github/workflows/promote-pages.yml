@@ -14,7 +14,6 @@ on:
       - site/**
       - skills/**
       - tones/**
-      - wrangler.toml
       - .github/workflows/promote-pages.yml
   workflow_dispatch:
     inputs:
@@ -50,6 +49,29 @@ jobs:
           git cat-file -e "$SHA^{commit}"
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "short=${SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve site semver tag
+        id: release
+        run: |
+          set -euo pipefail
+          VERSION="$(python3 - <<'PY'
+          import json
+          import re
+          import sys
+
+          version = json.load(open("site/package.json"))["version"]
+          if not re.fullmatch(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?", version):
+              sys.exit(f"site/package.json version is not semver: {version}")
+          print(version)
+          PY
+          )"
+          TAG="v$VERSION"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Tag $TAG already exists. Bump site/package.json before promoting a new live build." >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Wait for Cloudflare preview deployment
         id: preview
@@ -138,13 +160,22 @@ jobs:
               sys.exit("unexpected enabled extension set")
           PY
 
-      - name: Promote SHA to production branch
+      - name: Create immutable release tag
         run: |
           set -euo pipefail
           SHA="${{ steps.target.outputs.sha }}"
+          TAG="${{ steps.release.outputs.tag }}"
+          VERSION="${{ steps.release.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin production || true
+          git tag -a "$TAG" "$SHA" -m "release(site): $TAG"
+          git push origin "$TAG"
+          echo "Created release tag $TAG for site version $VERSION at $SHA"
+
+      - name: Promote tagged SHA to production branch
+        run: |
+          set -euo pipefail
+          SHA="${{ steps.target.outputs.sha }}"
           git push origin "$SHA:refs/heads/production" --force
 
       - name: Wait for Cloudflare production deployment
