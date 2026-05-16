@@ -12,18 +12,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install taplo (TOML toolkit)
-        run: |
-          curl -fsSL https://github.com/tamasfe/taplo/releases/latest/download/taplo-full-linux-x86_64.gz \
-            | gunzip > /usr/local/bin/taplo
-          chmod +x /usr/local/bin/taplo
-
       - name: Validate TOML syntax
         run: |
-          taplo check registry.toml
-          for f in extensions/*.toml; do
-            taplo check "$f"
-          done
+          python3 << 'EOF'
+          import pathlib
+          import tomllib
+          import sys
+
+          paths = [pathlib.Path("registry.toml"), *sorted(pathlib.Path("extensions").glob("*.toml"))]
+          errors = []
+          for path in paths:
+              try:
+                  with path.open("rb") as handle:
+                      tomllib.load(handle)
+                  print(f"  ok — {path}")
+              except tomllib.TOMLDecodeError as exc:
+                  errors.append(f"{path}: {exc}")
+
+          if errors:
+              for error in errors:
+                  print(f"ERROR: {error}", file=sys.stderr)
+              sys.exit(1)
+          EOF
 
       - name: Validate registry entries
         run: |
