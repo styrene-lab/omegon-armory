@@ -477,7 +477,8 @@ networkDescribe('live Omegon registry installs', () => {
       timeout: 180_000,
     });
     const items = JSON.parse(output);
-    assert.deepEqual(items.map((item) => item.id), ['flynt']);
+    const expectedEnabled = extensions.filter((entry) => entry.enabled).map((entry) => entry.id);
+    assert.deepEqual(items.map((item) => item.id), expectedEnabled);
   });
 
   it('installs every enabled extension by name', () => {
