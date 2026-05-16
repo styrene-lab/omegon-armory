@@ -1,6 +1,9 @@
 .DS_Store
 *.swp
 *~
+*.log
+
+# Build and generated outputs
 dist/
 __pycache__/
 site/.astro/
@@ -9,3 +12,10 @@ site/dist/
 site/node_modules/
 site/public/api/index.json
 site/src/data/armory.json
+
+# Local agent/vault runtime state
+.omegon/
+.omegon-install-check*/
+.flynt/
+.flynt-local/
+ai/memory/
