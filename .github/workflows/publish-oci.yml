@@ -88,7 +88,9 @@ jobs:
           rm -rf /tmp/armory-index-smoke
           mkdir -p /tmp/armory-index-smoke
           oras pull "$REGISTRY/index:latest" --output /tmp/armory-index-smoke
-          test -f /tmp/armory-index-smoke/index.json
+          INDEX_TARBALL="$(find /tmp/armory-index-smoke -name armory-index.tar.gz -print -quit)"
+          test -n "$INDEX_TARBALL"
+          tar -tzf "$INDEX_TARBALL" | grep -qx 'index.json'
 
       - name: Smoke representative published artifacts
         if: steps.registry.outputs.dry_run != 'true'
