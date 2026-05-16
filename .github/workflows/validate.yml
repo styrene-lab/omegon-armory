@@ -118,7 +118,15 @@ jobs:
               if not isinstance(entry, dict):
                   continue
               repo = entry.get("repo", "")
+              enabled = entry.get("enabled", True)
               if not repo.startswith("https://"):
+                  continue
+
+              # Disabled entries are staged candidates. They may point at private or
+              # not-yet-public repositories and must not block publication of the
+              # enabled registry surface.
+              if not enabled:
+                  print(f"  [{name}] staged/disabled — reachability skipped: {repo}")
                   continue
 
               # Use GET (not HEAD) — GitHub returns 403 for HEAD on public repos
