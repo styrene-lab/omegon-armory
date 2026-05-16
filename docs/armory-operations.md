@@ -34,11 +34,16 @@ Generated outputs are build products:
 
 The site and API must remain derived from manifests. Do not hand-edit generated catalog JSON as a source of truth.
 
+See also:
+
+- [Profile Artifacts](profile-artifacts.md) — profile meta-package shape and OCI representation.
+- [Self-Hosting Omegon Armory](self-hosting.md) — static-only, full mirror, and private/federated deployment modes.
+
 ## Distribution Model
 
 Armory has two distribution classes:
 
-1. **OCI artifacts** — skills, personas, tones, and catalog agents. These are packaged by `scripts/build-oci-artifacts.py`, published with ORAS, and signed with cosign.
+1. **OCI artifacts** — skills, personas, tones, profiles, and catalog agents. These are packaged by `scripts/build-oci-artifacts.py`, published with ORAS, and signed with cosign.
 2. **Registry installs** — extensions. These resolve by name through `registry.toml` and install from upstream repository/release metadata.
 
 The public site exposes this distinction through each item's `distribution` field and badges.
@@ -122,7 +127,7 @@ Enabled extensions must include:
 
 ## Adding an OCI-backed Package
 
-For skills, personas, tones, or catalog agents:
+For skills, personas, tones, profiles, or catalog agents:
 
 1. Add the package source directory and manifest.
 2. Add or update the relevant registry file if needed.
@@ -154,4 +159,5 @@ Mirrors should preserve path layout, for example:
 registry.example.com/omegon-armory/index:latest
 registry.example.com/omegon-armory/skills/security:1.0.0
 registry.example.com/omegon-armory/catalog/styrene.coding-agent:1.0.0
+registry.example.com/omegon-armory/profiles/alpharius:1.0.0
 ```

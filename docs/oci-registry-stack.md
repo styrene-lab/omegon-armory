@@ -36,6 +36,7 @@ ghcr.io/styrene-lab/omegon-armory/skills/security:1.0.0
 ghcr.io/styrene-lab/omegon-armory/personas/tutor:1.0.0
 ghcr.io/styrene-lab/omegon-armory/tones/concise:1.0.0
 ghcr.io/styrene-lab/omegon-armory/catalog/styrene.coding-agent:1.0.0
+ghcr.io/styrene-lab/omegon-armory/profiles/alpharius:1.0.0
 ```
 
 Self-hosted mirrors should preserve the path layout:
@@ -81,6 +82,16 @@ PERSONA.md
 mind/facts.jsonl
 ```
 
+Profile:
+
+```text
+profile.toml
+README.md
+LOCK.json
+```
+
+Profiles are meta-packages: they reference other Armory artifacts through dependency metadata instead of copying dependency payloads. See [Profile Artifacts](profile-artifacts.md).
+
 Extension artifacts may contain either a native extension archive or metadata that points to the existing extension release artifact. The first implementation should prefer reusing extension release archives rather than repackaging binaries in this repo.
 
 ## OCI Annotations
@@ -88,7 +99,7 @@ Extension artifacts may contain either a native extension archive or metadata th
 Every artifact should include enough annotations for basic registry inspection:
 
 ```text
-io.styrene.omegon.kind=skill|persona|tone|extension|agent|index
+io.styrene.omegon.kind=skill|persona|tone|extension|agent|profile|index
 io.styrene.omegon.id=security
 io.styrene.omegon.name=Security Review
 io.styrene.omegon.description=Security checklist for code review
@@ -230,7 +241,8 @@ The largest avoidable cost is uncontrolled anonymous scraping. Use Cloudflare ca
 
 ### Phase 2: Full Armory Publish
 
-- Package all skills, personas, tones, and catalog agents.
+- Package all skills, personas, tones, catalog agents, and profiles.
+- Add profile dependency metadata to the generated index.
 - Add extension entries that point to release artifacts or repackaged archives.
 - Publish multi-item index.
 - Add digest checks to generated index.
@@ -246,13 +258,18 @@ The largest avoidable cost is uncontrolled anonymous scraping. Use Cloudflare ca
 ### Phase 4: Self-Hosted Mirror
 
 - Deploy `deploy/zot-r2/` to a test Kubernetes namespace.
+- Add a local compose stack for zot + static site smoke tests.
 - Mirror GHCR artifacts into zot.
+- Rewrite the index namespace for the destination registry.
 - Verify public pull through custom registry hostname.
 - Document backup, lifecycle, auth, and garbage collection.
+
+See [Self-Hosting Omegon Armory](self-hosting.md).
 
 ## Open Questions
 
 - Should extension binaries be republished into the Armory namespace, or should extension OCI artifacts only reference release archives?
 - Should the index be one artifact per channel (`stable`, `nightly`) or one artifact with channels inside the JSON?
 - Should self-hosted mirrors be pull-through caches or explicit replicated registries?
+- Should official profiles always ship `LOCK.json`, or should some remain floating by policy?
 - Which native Rust OCI client should Omegon use for daemonless pulls?
