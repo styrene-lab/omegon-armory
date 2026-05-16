@@ -1,0 +1,220 @@
+name: Promote Armory Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - catalog/**
+      - catalog-registry.toml
+      - extensions/**
+      - personas/**
+      - registry.toml
+      - scripts/build-oci-artifacts.py
+      - scripts/generate-site-data.py
+      - site/**
+      - skills/**
+      - tones/**
+      - wrangler.toml
+      - .github/workflows/promote-pages.yml
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit SHA to promote. Defaults to the workflow SHA.
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: armory-pages-promotion
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-24.04
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_PROJECT_NAME: omegon-armory
+      PRODUCTION_URL: https://armory.styrene.io
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.sha || github.sha }}
+
+      - name: Resolve target SHA
+        id: target
+        run: |
+          SHA="${{ inputs.sha || github.sha }}"
+          git cat-file -e "$SHA^{commit}"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "short=${SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for Cloudflare preview deployment
+        id: preview
+        run: |
+          set -euo pipefail
+          API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PROJECT_NAME/deployments"
+          SHA="${{ steps.target.outputs.sha }}"
+
+          for attempt in $(seq 1 60); do
+            curl -fsS \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$API" > deployments.json
+
+            python3 <<'PY' > preview.env || true
+          import json
+          import os
+          import sys
+
+          data = json.load(open("deployments.json"))
+          sha = os.environ["SHA"]
+          for deployment in data.get("result", []):
+              trigger = deployment.get("deployment_trigger", {}) or {}
+              metadata = trigger.get("metadata", {}) or {}
+              if metadata.get("commit_hash") != sha:
+                  continue
+              if deployment.get("environment") != "preview":
+                  continue
+              status = deployment.get("latest_stage", {}).get("status", "")
+              url = deployment.get("url", "")
+              print(f"PREVIEW_STATUS={status}")
+              print(f"PREVIEW_URL={url}")
+              sys.exit(0)
+          sys.exit(1)
+          PY
+            if [ -s preview.env ]; then
+              cat preview.env
+              . ./preview.env
+              if [ "$PREVIEW_STATUS" = "success" ]; then
+                echo "url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              if [ "$PREVIEW_STATUS" = "failure" ] || [ "$PREVIEW_STATUS" = "canceled" ]; then
+                echo "Preview deployment failed with status $PREVIEW_STATUS" >&2
+                exit 1
+              fi
+            fi
+            echo "Preview deployment for $SHA not ready yet (attempt $attempt/60)"
+            sleep 20
+          done
+
+          echo "Timed out waiting for Cloudflare preview deployment for $SHA" >&2
+          exit 1
+        env:
+          SHA: ${{ steps.target.outputs.sha }}
+
+      - name: Smoke preview deployment
+        run: |
+          set -euo pipefail
+          PREVIEW_URL="${{ steps.preview.outputs.url }}"
+          echo "Smoking preview: $PREVIEW_URL"
+          curl -fsSL "$PREVIEW_URL/" >/dev/null
+          curl -fsSL "$PREVIEW_URL/api/index.json" > preview-index.json
+          python3 <<'PY'
+          import json
+          import sys
+          from collections import Counter
+
+          data = json.load(open("preview-index.json"))
+          items = data.get("items", [])
+          kinds = Counter(item.get("kind") for item in items)
+          distributions = Counter(item.get("distribution") for item in items)
+          extensions = sorted(item.get("id") for item in items if item.get("kind") == "extension")
+
+          print("registry", data.get("registry"))
+          print("items", len(items))
+          print("kinds", dict(kinds))
+          print("distributions", dict(distributions))
+          print("extensions", extensions)
+
+          if data.get("registry") != "ghcr.io/styrene-lab/omegon-armory":
+              sys.exit("unexpected registry")
+          if len(items) < 22:
+              sys.exit("catalog is missing expected entries")
+          if extensions != ["flynt", "shuttle"]:
+              sys.exit("unexpected enabled extension set")
+          PY
+
+      - name: Promote SHA to production branch
+        run: |
+          set -euo pipefail
+          SHA="${{ steps.target.outputs.sha }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin production || true
+          git push origin "$SHA:refs/heads/production" --force
+
+      - name: Wait for Cloudflare production deployment
+        id: production
+        run: |
+          set -euo pipefail
+          API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PROJECT_NAME/deployments"
+          SHA="${{ steps.target.outputs.sha }}"
+
+          for attempt in $(seq 1 60); do
+            curl -fsS \
+              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$API" > deployments.json
+
+            python3 <<'PY' > production.env || true
+          import json
+          import os
+          import sys
+
+          data = json.load(open("deployments.json"))
+          sha = os.environ["SHA"]
+          for deployment in data.get("result", []):
+              trigger = deployment.get("deployment_trigger", {}) or {}
+              metadata = trigger.get("metadata", {}) or {}
+              if metadata.get("commit_hash") != sha:
+                  continue
+              if deployment.get("environment") != "production":
+                  continue
+              status = deployment.get("latest_stage", {}).get("status", "")
+              url = deployment.get("url", "")
+              print(f"PRODUCTION_STATUS={status}")
+              print(f"PRODUCTION_URL={url}")
+              sys.exit(0)
+          sys.exit(1)
+          PY
+            if [ -s production.env ]; then
+              cat production.env
+              . ./production.env
+              if [ "$PRODUCTION_STATUS" = "success" ]; then
+                echo "url=$PRODUCTION_URL" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              if [ "$PRODUCTION_STATUS" = "failure" ] || [ "$PRODUCTION_STATUS" = "canceled" ]; then
+                echo "Production deployment failed with status $PRODUCTION_STATUS" >&2
+                exit 1
+              fi
+            fi
+            echo "Production deployment for $SHA not ready yet (attempt $attempt/60)"
+            sleep 20
+          done
+
+          echo "Timed out waiting for Cloudflare production deployment for $SHA" >&2
+          exit 1
+        env:
+          SHA: ${{ steps.target.outputs.sha }}
+
+      - name: Smoke production domain
+        run: |
+          set -euo pipefail
+          curl -fsSL "$PRODUCTION_URL/" >/dev/null
+          curl -fsSL "$PRODUCTION_URL/api/index.json" > production-index.json
+          python3 <<'PY'
+          import json
+          data = json.load(open("production-index.json"))
+          print("production generatedAt", data.get("generatedAt"))
+          print("production registry", data.get("registry"))
+          print("production items", len(data.get("items", [])))
+          if data.get("registry") != "ghcr.io/styrene-lab/omegon-armory":
+              raise SystemExit("unexpected production registry")
+          if len(data.get("items", [])) < 22:
+              raise SystemExit("production catalog is missing expected entries")
+          PY
