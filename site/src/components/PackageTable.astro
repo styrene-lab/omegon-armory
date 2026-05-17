@@ -135,7 +135,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
   <p class="empty-state" data-empty hidden>No packages match the current filters.</p>
 </section>
 
-<script>
+<script is:inline>
     const root = document.querySelector("[data-catalog]");
     if (root) {
     const search = root.querySelector("[data-search]");
