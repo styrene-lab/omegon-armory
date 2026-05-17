@@ -160,6 +160,25 @@ Official profile releases should eventually publish `LOCK.json` for reproducibil
 
 Profiles may remain floating during early public Armory development. Locked official releases are the target state before treating profiles as reproducible install units.
 
+## Exporter implementation
+
+The repo-local exporter renders profile dependencies into degraded prompt/config formats:
+
+```bash
+python3 scripts/export-profile.py python-shop --format generic-markdown --out dist/exports/python-shop.md
+python3 scripts/export-profile.py security-review --format agents-md --out dist/exports/AGENTS.md
+python3 scripts/export-profile.py typescript-shop --format claude-md --out dist/exports/CLAUDE.md
+python3 scripts/export-profile.py docs-vault --format cursor-rules --out dist/exports/.cursorrules
+```
+
+Rules:
+
+- required portable dependencies are included by default;
+- optional portable dependencies require `--include-optional` unless the profile export config says otherwise;
+- native extensions render as setup notes, not prompt content;
+- exports include provenance and generated-file headers;
+- profile dependency recursion, lockfile resolution, OCI registry resolution, and memory fact export are intentionally deferred.
+
 ## Exporter implications
 
 Exporters should:

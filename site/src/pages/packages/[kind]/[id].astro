@@ -58,6 +58,19 @@ const hasDistinctHomepage =
         {item.ociRef && <CommandBlock label="OCI pull" command={`oras pull ${item.ociRef}`} />}
         {item.verifyCommand && <CommandBlock label="Verify signature" command={item.verifyCommand} />}
 
+        {item.kind === "profile" && (
+          <>
+            <h2>Portable Exports</h2>
+            <p class="install-note large">
+              Profiles can be rendered into degraded prompt/config files for non-Omegon runtimes. Native extensions remain setup notes, not prompt content.
+            </p>
+            <CommandBlock label="Generic markdown" command={`python3 scripts/export-profile.py ${item.id} --format generic-markdown --out dist/exports/${item.id}.md`} />
+            <CommandBlock label="AGENTS.md" command={`python3 scripts/export-profile.py ${item.id} --format agents-md --out dist/exports/${item.id}-AGENTS.md`} />
+            <CommandBlock label="CLAUDE.md" command={`python3 scripts/export-profile.py ${item.id} --format claude-md --out dist/exports/${item.id}-CLAUDE.md`} />
+            <CommandBlock label="Cursor rules" command={`python3 scripts/export-profile.py ${item.id} --format cursor-rules --out dist/exports/${item.id}.cursorrules`} />
+          </>
+        )}
+
         {item.capabilities.length > 0 && (
           <>
             <h2>Capabilities</h2>
