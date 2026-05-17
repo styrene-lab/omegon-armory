@@ -1,4 +1,5 @@
 [profile]
+schema = "dev.styrene.omegon.profile.v1"
 id = "dev.styrene.omegon.profile.infra-operator"
 slug = "infra-operator"
 name = "Infra Operator"
@@ -14,6 +15,11 @@ thinking_level = "medium"
 max_turns = 50
 persona = "systems-engineer"
 tone = "concise"
+
+[export]
+default_format = "generic-markdown"
+include_optional = false
+include_native_notes = true
 
 [[dependencies]]
 kind = "persona"

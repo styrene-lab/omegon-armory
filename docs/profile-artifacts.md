@@ -45,10 +45,11 @@ profiles/
 
 ## Manifest
 
-`profile.toml` is the source of truth.
+`profile.toml` is the source of truth. The normative schema is [Profile Schema v1](profile-schema.md).
 
 ```toml
 [profile]
+schema = "dev.styrene.omegon.profile.v1"
 id = "dev.styrene.omegon.profile.alpharius"
 slug = "alpharius"
 name = "Alpharius Engineering Profile"
@@ -63,6 +64,11 @@ thinking_level = "medium"
 max_turns = 50
 persona = "systems-engineer"
 tone = "concise"
+
+[export]
+default_format = "generic-markdown"
+include_optional = false
+include_native_notes = true
 
 [[dependencies]]
 kind = "persona"

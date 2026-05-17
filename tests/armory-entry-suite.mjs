@@ -36,6 +36,12 @@ const VALID_EXTENSION_CATEGORIES = new Set([
   'remote',
 ]);
 const VALID_AGENT_DOMAINS = new Set(['chat', 'coding', 'infra', 'ops']);
+const VALID_PROFILE_CATEGORIES = new Set(['engineering', 'knowledge', 'operations', 'review']);
+const VALID_PROFILE_POSTURES = new Set(['architect', 'implementer', 'reviewer', 'operator', 'analyst']);
+const VALID_PROFILE_THINKING = new Set(['low', 'medium', 'high', 'max']);
+const VALID_PROFILE_EXPORT_FORMATS = new Set(['generic-markdown', 'agents-md', 'claude-md', 'cursor-rules']);
+const VALID_PROFILE_DEPENDENCY_KINDS = new Set(['skill', 'persona', 'tone', 'extension', 'agent', 'profile']);
+const VALID_PROFILE_ACTIVATION = new Set(['always', 'auto', 'manual']);
 
 const ENV_NAME_RE = /^[A-Z_][A-Z0-9_]*$/;
 const SECRET_REF_RE = /^([A-Z_][A-Z0-9_]*|\{[A-Z_][A-Z0-9_]*\})$/;
@@ -221,6 +227,23 @@ function discoverExtensions() {
   return parseRegistry('registry.toml').sort((a, b) => a.id.localeCompare(b.id));
 }
 
+function discoverProfiles() {
+  const root = path.join(ARMORY_ROOT, 'profiles');
+  return fs.readdirSync(root, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory())
+    .map((dirent) => {
+      const relativeDir = `profiles/${dirent.name}`;
+      const manifestPath = `${relativeDir}/profile.toml`;
+      return {
+        slug: dirent.name,
+        relativeDir,
+        manifestPath,
+        manifest: parseToml(readText(manifestPath)),
+      };
+    })
+    .sort((a, b) => a.slug.localeCompare(b.slug));
+}
+
 function command(bin, args, options = {}) {
   const result = spawnSync(bin, args, {
     cwd: options.cwd || ARMORY_ROOT,
@@ -267,6 +290,7 @@ function networkDescribe(name, fn) {
 }
 
 const plugins = discoverPlugins();
+const profiles = discoverProfiles();
 const catalogEntries = discoverCatalogEntries();
 const extensions = discoverExtensions();
 
@@ -283,6 +307,7 @@ describe('armory registry inventory', () => {
   it('has the expected public entry counts before publish', () => {
     assert.equal(plugins.length, 14, 'unexpected plugin/persona/tone/skill count');
     assert.equal(catalogEntries.length, 6, 'unexpected agent catalog count');
+    assert.equal(profiles.length, 6, 'unexpected profile count');
     assert.equal(extensions.length, 5, 'unexpected extension registry count');
   });
 
@@ -378,6 +403,72 @@ describe('plugin entries', () => {
     const ids = plugins.map((plugin) => plugin.manifest.plugin.id);
     assert.equal(new Set(ids).size, ids.length);
   });
+});
+
+
+describe('profile manifests', () => {
+  const available = new Set([
+    ...plugins.map((plugin) => `${plugin.manifest.plugin.type}:${plugin.slug}`),
+    ...catalogEntries.map((entry) => `agent:${entry.id}`),
+    ...extensions.map((entry) => `extension:${entry.id}`),
+    ...profiles.map((profile) => `profile:${profile.slug}`),
+  ]);
+
+  for (const profileEntry of profiles) {
+    const manifest = profileEntry.manifest;
+    const profile = manifest.profile || {};
+    const defaults = manifest.defaults || {};
+    const exportConfig = manifest.export || {};
+    const dependencies = manifest.dependencies || [];
+
+    it(`${profileEntry.relativeDir} follows profile schema v1`, () => {
+      assert.equal(profile.schema, 'dev.styrene.omegon.profile.v1');
+      assert.equal(profile.slug, profileEntry.slug);
+      assert.equal(profile.id, `dev.styrene.omegon.profile.${profileEntry.slug}`);
+      assert.match(profile.version, /^\d+\.\d+\.\d+$/);
+      assert.ok(profile.name?.length > 0);
+      assert.ok(profile.description?.length > 0);
+      assert.ok(profile.description.length <= 220);
+      assert.ok(VALID_PROFILE_CATEGORIES.has(profile.category), `${profileEntry.slug}: invalid category`);
+      assert.ok(profile.license, `${profileEntry.slug}: missing license`);
+      assert.match(profile.min_omegon, /^\d+\.\d+\.\d+$/);
+      assert.ok(exists(`${profileEntry.relativeDir}/README.md`), `${profileEntry.slug}: missing README.md`);
+
+      assert.ok(VALID_PROFILE_POSTURES.has(defaults.posture), `${profileEntry.slug}: invalid posture`);
+      assert.ok(VALID_PROFILE_THINKING.has(defaults.thinking_level), `${profileEntry.slug}: invalid thinking_level`);
+      assert.equal(Number.isInteger(defaults.max_turns), true, `${profileEntry.slug}: max_turns must be integer`);
+      assert.ok(defaults.max_turns >= 1 && defaults.max_turns <= 200, `${profileEntry.slug}: max_turns out of range`);
+      assert.ok(defaults.persona, `${profileEntry.slug}: missing default persona`);
+      assert.ok(defaults.tone, `${profileEntry.slug}: missing default tone`);
+
+      assert.ok(VALID_PROFILE_EXPORT_FORMATS.has(exportConfig.default_format), `${profileEntry.slug}: invalid export format`);
+      assert.equal(typeof exportConfig.include_optional, 'boolean', `${profileEntry.slug}: include_optional must be boolean`);
+      assert.equal(typeof exportConfig.include_native_notes, 'boolean', `${profileEntry.slug}: include_native_notes must be boolean`);
+
+      assert.ok(Array.isArray(dependencies), `${profileEntry.slug}: dependencies must be an array`);
+      assert.ok(dependencies.length >= 2, `${profileEntry.slug}: expected persona/tone dependencies`);
+      const seen = new Set();
+      for (const [index, dependency] of dependencies.entries()) {
+        assert.ok(VALID_PROFILE_DEPENDENCY_KINDS.has(dependency.kind), `${profileEntry.slug}:${index}: invalid dependency kind`);
+        assert.match(dependency.id, /^[a-z0-9][a-z0-9.-]*$/, `${profileEntry.slug}:${index}: invalid dependency id`);
+        assert.ok(dependency.version, `${profileEntry.slug}:${dependency.id}: missing version`);
+        assert.equal(typeof dependency.required, 'boolean', `${profileEntry.slug}:${dependency.id}: required must be boolean`);
+        assert.ok(VALID_PROFILE_ACTIVATION.has(dependency.activate), `${profileEntry.slug}:${dependency.id}: invalid activation`);
+        const key = `${dependency.kind}:${dependency.id}`;
+        assert.equal(seen.has(key), false, `${profileEntry.slug}: duplicate dependency ${key}`);
+        seen.add(key);
+        assert.ok(available.has(key), `${profileEntry.slug}: unresolved dependency ${key}`);
+      }
+      assert.ok(
+        dependencies.some((dependency) => dependency.kind === 'persona' && dependency.id === defaults.persona && dependency.required),
+        `${profileEntry.slug}: default persona must be a required persona dependency`,
+      );
+      assert.ok(
+        dependencies.some((dependency) => dependency.kind === 'tone' && dependency.id === defaults.tone && dependency.required),
+        `${profileEntry.slug}: default tone must be a required tone dependency`,
+      );
+    });
+  }
 });
 
 describe('catalog agent entries', () => {

@@ -39,6 +39,7 @@ See also:
 - [Compatibility Model](compatibility.md) — native Omegon semantics, degraded use in other agent hosts, and extension interface strategy.
 - [Public Payload Security](public-payload-security.md) — lint policy, publication risks, and private-topology controls.
 - [Public Launch Checklist](public-launch-checklist.md) — release gates and launch smoke tests.
+- [Profile Schema](profile-schema.md) — manifest fields, dependency invariants, and export semantics.
 - [Profile Artifacts](profile-artifacts.md) — profile meta-package shape and OCI representation.
 - [Self-Hosting Omegon Armory](self-hosting.md) — static-only, full mirror, and private/federated deployment modes.
 

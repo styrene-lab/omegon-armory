@@ -2,7 +2,7 @@
 
 Official plugin and extension repository for [Omegon](https://github.com/styrene-lab/omegon) — the terminal-native AI agent harness.
 
-Armory is also the source tree for OCI-packaged ecosystem artifacts. The first distribution target is GHCR; the self-hosted target is a zot registry backed by Cloudflare R2. Profiles are distributed as OCI meta-packages that reference skills, personas, tones, extensions, and agents. See [docs/compatibility.md](docs/compatibility.md), [docs/public-payload-security.md](docs/public-payload-security.md), [docs/public-launch-checklist.md](docs/public-launch-checklist.md), [docs/profile-artifacts.md](docs/profile-artifacts.md), [docs/self-hosting.md](docs/self-hosting.md), [docs/oci-registry-stack.md](docs/oci-registry-stack.md), and [deploy/zot-r2](deploy/zot-r2/).
+Armory is also the source tree for OCI-packaged ecosystem artifacts. The first distribution target is GHCR; the self-hosted target is a zot registry backed by Cloudflare R2. Profiles are distributed as OCI meta-packages that reference skills, personas, tones, extensions, and agents. See [docs/compatibility.md](docs/compatibility.md), [docs/profile-schema.md](docs/profile-schema.md), [docs/public-payload-security.md](docs/public-payload-security.md), [docs/public-launch-checklist.md](docs/public-launch-checklist.md), [docs/profile-artifacts.md](docs/profile-artifacts.md), [docs/self-hosting.md](docs/self-hosting.md), [docs/oci-registry-stack.md](docs/oci-registry-stack.md), and [deploy/zot-r2](deploy/zot-r2/).
 
 Build the OCI payloads locally:
 
