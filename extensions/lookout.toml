@@ -1,0 +1,40 @@
+[extension]
+name = "lookout"
+repo = "https://github.com/primaris-tech/lookout"
+description = "Self-hosted lookahead severe-weather alerts from NWS SPC outlooks and mesoscale discussions."
+category = "monitoring"
+maintainer = "primaris-tech"
+license = "Apache-2.0"
+version = "latest"
+homepage = "https://github.com/primaris-tech/lookout"
+repository = "https://github.com/primaris-tech/lookout"
+
+[interfaces.omegon]
+status = "none"
+
+[interfaces.cli]
+status = "supported"
+binary = "lookout"
+commands = [
+  "lookout",
+  "lookout --check",
+  "lookout --fetch-once",
+  "lookout --dry-run --fetch-once",
+]
+
+[interfaces.oci]
+status = "supported"
+image = "ghcr.io/primaris-tech/lookout:latest"
+
+[interfaces.mcp]
+status = "none"
+tools = []
+
+[interfaces.http]
+status = "none"
+
+[security]
+notes = [
+  "Do not publish config.yml; it may contain home coordinates, contact emails, and Apprise notification secrets.",
+  "Use secret managers for Apprise URLs and Kubernetes Secret manifests.",
+]

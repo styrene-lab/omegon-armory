@@ -1,4 +1,4 @@
-export type ArmoryDistribution = "oci" | "registry";
+export type ArmoryDistribution = "oci" | "registry" | "external";
 
 export type ArmoryKind = "extension" | "skill" | "persona" | "tone" | "agent" | "profile";
 
@@ -30,7 +30,7 @@ export type ArmoryInterfaces = {
   omegon?: ArmoryInterface;
   mcp?: ArmoryInterface;
   cli?: ArmoryInterface;
-  http?: ArmoryInterface;
+  oci?: ArmoryInterface;
 };
 
 export type ArmoryItem = {

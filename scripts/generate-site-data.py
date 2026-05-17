@@ -288,6 +288,8 @@ def extensions(repo: Path) -> list[dict]:
     for ext_id, entry in sorted(registry.items()):
         if not isinstance(entry, dict) or not entry.get("enabled", True):
             continue
+        distribution = entry.get("distribution", "registry")
+        installable = bool(entry.get("installable", distribution == "registry"))
         detail_path = repo / "extensions" / f"{ext_id}.toml"
         detail_manifest = load_toml(detail_path) if detail_path.exists() else {}
         detail = detail_manifest.get("extension", {})
@@ -308,8 +310,8 @@ def extensions(repo: Path) -> list[dict]:
                 "repositoryUrl": repo_url,
                 "homepageUrl": homepage,
                 "armoryUrl": github_blob_url(source_path),
-                "installCommand": f"omegon extension install {ext_id}",
-                "installNote": "Installs by name from the Omegon extension registry.",
+                "installCommand": f"omegon extension install {ext_id}" if installable else f"See upstream integration: {repo_url}",
+                "installNote": "Installs by name from the Omegon extension registry." if installable else "External community integration. Use the declared CLI/OCI interfaces; not installable as a native Omegon extension yet.",
                 "verifyCommand": "",
                 "ociRef": "",
                 "artifactType": "",
@@ -324,7 +326,7 @@ def extensions(repo: Path) -> list[dict]:
                 "files": files,
                 "dependencies": [],
                 "interfaces": normalize_interfaces(detail_manifest.get("interfaces", {})),
-                "distribution": "registry",
+                "distribution": distribution,
             }
         )
     return items
@@ -385,7 +387,7 @@ def agent_dependencies(agent_manifest: dict, extension_registry: dict) -> list[d
 
 def normalize_interfaces(interfaces: dict) -> dict:
     normalized = {}
-    for name in ["omegon", "mcp", "cli", "http"]:
+    for name in ["omegon", "mcp", "cli", "http", "oci"]:
         raw = interfaces.get(name, {}) if isinstance(interfaces, dict) else {}
         if not isinstance(raw, dict):
             raw = {}
@@ -495,7 +497,7 @@ def compatibility_for_item(item: dict) -> dict:
         interfaces = item.get("interfaces", {})
         portable = [
             name
-            for name in ["mcp", "cli", "http"]
+            for name in ["mcp", "cli", "http", "oci"]
             if interfaces.get(name, {}).get("status") == "supported"
         ]
         compatibility["tier"] = 3 if portable else 0

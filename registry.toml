@@ -66,3 +66,17 @@ license = "MIT"
 min_sdk = "0.19"
 manifest_path = "manifest.toml"
 asset_prefix = "shuttle"
+
+# ── Community integrations ────────────────────────────────────────────────
+
+[lookout]
+enabled = true
+distribution = "external"
+installable = false
+repo = "https://github.com/primaris-tech/lookout"
+description = "Self-hosted lookahead severe-weather alerts from NWS SPC outlooks and mesoscale discussions."
+category = "monitoring"
+maintainer = "primaris-tech"
+license = "Apache-2.0"
+min_sdk = "0.0"
+version = "latest"

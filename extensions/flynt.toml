@@ -42,3 +42,6 @@ tools = []
 
 [interfaces.http]
 status = "none"
+
+[interfaces.oci]
+status = "none"

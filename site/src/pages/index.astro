@@ -19,6 +19,7 @@ const stats = {
   profiles: items.filter((item) => item.kind === "profile").length,
   oci: items.filter((item) => item.distribution === "oci").length,
   registry: items.filter((item) => item.distribution === "registry").length,
+  external: items.filter((item) => item.distribution === "external").length,
   promptCompatible: items.filter((item) => item.compatibility.tier === 1).length,
   manifestCompatible: items.filter((item) => item.compatibility.tier === 2).length,
 };
@@ -68,6 +69,7 @@ const surfaces = [
         <div><dt>Prompt-compatible</dt><dd>{stats.promptCompatible}</dd></div>
         <div><dt>Manifest-compatible</dt><dd>{stats.manifestCompatible}</dd></div>
         <div><dt>Registry installs</dt><dd>{stats.registry}</dd></div>
+        <div><dt>External integrations</dt><dd>{stats.external}</dd></div>
         <div><dt>OCI artifacts</dt><dd>{stats.oci}</dd></div>
       </dl>
     </div>

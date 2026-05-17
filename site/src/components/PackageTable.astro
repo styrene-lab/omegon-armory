@@ -75,6 +75,11 @@ const hasDistinctRepository = (item: ArmoryItem) =>
           <span>Registry install</span>
           <small>{items.filter((item) => item.distribution === "registry").length}</small>
         </label>
+        <label class="check-row">
+          <input data-distribution type="checkbox" value="external" />
+          <span>External integration</span>
+          <small>{items.filter((item) => item.distribution === "external").length}</small>
+        </label>
       </fieldset>
 
       <fieldset>
@@ -129,7 +134,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
               <a href={`/packages/${item.kind}/${item.id}`} class="package-title">{item.name}</a>
               <span class="badge">{item.kind}</span>
               <span class={`badge ${item.distribution === "oci" ? "badge-oci" : "badge-registry"}`}>
-                {item.distribution === "oci" ? "OCI artifact" : "Registry install"}
+                {item.distribution === "oci" ? "OCI artifact" : item.distribution === "external" ? "External integration" : "Registry install"}
               </span>
               <span class="badge">Tier {item.compatibility.tier}</span>
               {item.official && <span class="badge badge-verified">Official</span>}

@@ -33,6 +33,7 @@ const VALID_EXTENSION_CATEGORIES = new Set([
   'forge',
   'knowledge',
   'media',
+  'monitoring',
   'remote',
 ]);
 const VALID_AGENT_DOMAINS = new Set(['chat', 'coding', 'infra', 'ops']);
@@ -308,7 +309,7 @@ describe('armory registry inventory', () => {
     assert.equal(plugins.length, 14, 'unexpected plugin/persona/tone/skill count');
     assert.equal(catalogEntries.length, 6, 'unexpected agent catalog count');
     assert.equal(profiles.length, 6, 'unexpected profile count');
-    assert.equal(extensions.length, 5, 'unexpected extension registry count');
+    assert.equal(extensions.length, 6, 'unexpected extension registry count');
   });
 
   it('does not retain retired Scribe references in publishable entry surfaces', () => {
@@ -520,33 +521,42 @@ describe('extension registry entries', () => {
       const detailPath = `extensions/${extension.id}.toml`;
       assert.ok(exists(detailPath), `${extension.id}: missing extension detail file`);
       const detail = parseToml(readText(detailPath));
-      assert.equal(
-        detail.interfaces?.omegon?.status,
-        'supported',
-        `${extension.id}: interfaces.omegon.status must be supported`,
-      );
-      assert.equal(
-        detail.interfaces?.omegon?.install,
-        `omegon extension install ${extension.id}`,
-        `${extension.id}: interfaces.omegon.install must match registry install command`,
-      );
-      for (const interfaceName of ['mcp', 'cli', 'http']) {
+      if (extension.distribution === 'external') {
+        assert.equal(detail.interfaces?.omegon?.status, 'none', `${extension.id}: external integrations must not claim native Omegon support`);
+      } else {
+        assert.equal(
+          detail.interfaces?.omegon?.status,
+          'supported',
+          `${extension.id}: interfaces.omegon.status must be supported`,
+        );
+        assert.equal(
+          detail.interfaces?.omegon?.install,
+          `omegon extension install ${extension.id}`,
+          `${extension.id}: interfaces.omegon.install must match registry install command`,
+        );
+      }
+      for (const interfaceName of ['mcp', 'cli', 'http', 'oci']) {
         const status = detail.interfaces?.[interfaceName]?.status;
         assert.ok(
           ['supported', 'planned', 'none'].includes(status),
           `${extension.id}: interfaces.${interfaceName}.status must be supported, planned, or none`,
         );
       }
-      if (extension.enabled) {
+      if (extension.enabled && extension.distribution !== 'external') {
         assert.ok(extension.asset_prefix, `${extension.id}: enabled extensions need asset_prefix`);
         assert.ok(extension.manifest_path, `${extension.id}: enabled extensions need manifest_path`);
+      }
+      if (extension.distribution === 'external') {
+        assert.equal(extension.installable, false, `${extension.id}: external integrations must not be native-installable`);
       }
     });
   }
 
   it('only flynt and shuttle are enabled for the initial publish gate', () => {
-    const enabled = extensions.filter((entry) => entry.enabled).map((entry) => entry.id);
-    assert.deepEqual(enabled, ['flynt', 'shuttle']);
+    const enabledNative = extensions
+      .filter((entry) => entry.enabled && entry.distribution !== 'external')
+      .map((entry) => entry.id);
+    assert.deepEqual(enabledNative, ['flynt', 'shuttle']);
   });
 });
 
@@ -635,7 +645,7 @@ describe('generated catalog compatibility metadata', () => {
 
       const sitePayload = JSON.parse(fs.readFileSync(siteJson, 'utf8'));
       const apiPayload = JSON.parse(fs.readFileSync(apiJson, 'utf8'));
-      assert.equal(sitePayload.items.length, 28);
+      assert.equal(sitePayload.items.length, 29);
       assert.deepEqual(apiPayload.items, sitePayload.items);
 
       for (const item of sitePayload.items) {
@@ -657,7 +667,7 @@ describe('generated catalog compatibility metadata', () => {
           if (mode.entrypoints) {
             assert.ok(Array.isArray(mode.entrypoints), `${item.kind}/${item.id}: entrypoints must be an array`);
             for (const entrypoint of mode.entrypoints) {
-              if (entrypoint.endsWith('Url')) continue;
+              if (entrypoint.endsWith('Url') || entrypoint === 'interfaces') continue;
               assert.ok(
                 item.files.includes(entrypoint),
                 `${item.kind}/${item.id}: compatibility entrypoint ${entrypoint} not in files`,
@@ -677,8 +687,12 @@ describe('generated catalog compatibility metadata', () => {
 
         if (item.kind === 'extension') {
           assert.ok(item.interfaces, `${item.id}: extension missing interface metadata`);
-          assert.equal(item.interfaces.omegon?.status, 'supported', `${item.id}: omegon interface must be supported`);
-          const portableInterfaces = ['mcp', 'cli', 'http'].filter(
+          if (item.distribution === 'external') {
+            assert.equal(item.interfaces.omegon?.status, 'none', `${item.id}: external integration must not claim native Omegon support`);
+          } else {
+            assert.equal(item.interfaces.omegon?.status, 'supported', `${item.id}: omegon interface must be supported`);
+          }
+          const portableInterfaces = ['mcp', 'cli', 'http', 'oci'].filter(
             (name) => item.interfaces[name]?.status === 'supported',
           );
           assert.equal(
