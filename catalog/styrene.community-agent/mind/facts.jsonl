@@ -14,4 +14,3 @@
 {"section":"Omegon Operations","content":"omegon serve runs a headless daemon with HTTP bootstrap (/api/healthz, /api/readyz, /api/startup) and WebSocket event streaming. The --agent flag loads a catalog agent manifest.","confidence":1.0}
 {"section":"Omegon Operations","content":"omegon extensions are subprocess-based: spawned with env_clear() for secret isolation, handshake via get_tools and bootstrap_secrets RPC, then tool calls via JSON-RPC 2.0 over stdin/stdout.","confidence":1.0}
 {"section":"Vox Operations","content":"The vox trust model distinguishes operator messages with full instruction authority from user messages, which are treated as external data with prompt-injection defense. Trust level is set per user via operators/operator_roles config.","confidence":1.0}
-{"section":"Infrastructure","content":"brutus is the project's k3s cluster used for production infrastructure, DNS management, and deployment pipelines.","confidence":0.85}

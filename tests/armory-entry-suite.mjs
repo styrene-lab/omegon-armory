@@ -417,6 +417,18 @@ describe('extension registry entries', () => {
   });
 });
 
+
+describe('public payload lint', () => {
+  it('rejects obvious secrets and private topology in publishable payloads', () => {
+    const result = spawnSync('python3', ['scripts/lint-public-payloads.py'], {
+      cwd: ARMORY_ROOT,
+      encoding: 'utf8',
+    });
+    assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+    assert.match(result.stdout, /Public payload lint passed/);
+  });
+});
+
 describe('generated catalog compatibility metadata', () => {
   it('emits conservative compatibility contracts for every public site/API item', () => {
     const generatedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omegon-armory-generated.'));
