@@ -1,0 +1,80 @@
+# Public Armory payload lint policy.
+#
+# This file is intentionally strict for the public Styrene Armory. Private or
+# federated Armories should maintain their own deny terms for local topology.
+
+[allow]
+patterns = [
+  "127\\.0\\.0\\.1",
+  "0\\.0\\.0\\.0",
+  "localhost",
+  "10\\.0\\.1\\.50",          # shuttle documentation example
+  "192\\.168\\.1\\.100",     # shuttle documentation example
+  "VOX_[A-Z0-9_]+_TOKEN",
+  "ANTHROPIC_API_KEY",
+  "GITHUB_TOKEN",
+  "FORGEJO_TOKEN",
+  "COSIGN_EXPERIMENTAL",
+  "sk-abc123",                # security skill placeholder
+  "process\\.env\\.[A-Z0-9_]+",
+  "VERSION_ID",
+]
+
+[deny]
+# Private or environment-specific topology terms that should not appear in the
+# public package surface. Add project-private service names here rather than
+# hard-coding them in the scanner.
+topology_terms = [
+  "brutus",
+  "jellyfin",
+  "jellyseerr",
+  "radarr",
+  "sonarr",
+  "prowlarr",
+  "qbittorrent",
+  "sabnzbd",
+  "forgejo",
+]
+
+# Domains/TLDs that usually indicate private infrastructure, not public package
+# metadata. Examples and localhost are allowlisted above.
+private_domain_suffixes = [
+  "local",
+  "lan",
+  "internal",
+  "home",
+  "corp",
+]
+
+# Key names that are acceptable as placeholders but dangerous when assigned
+# concrete-looking values.
+secret_keys = [
+  "api_key",
+  "apikey",
+  "access_token",
+  "auth_token",
+  "bearer_token",
+  "client_secret",
+  "secret",
+  "password",
+  "passwd",
+  "private_key",
+]
+
+[limits]
+# High entropy scanning is line-based. Values below this length are usually docs
+# examples or identifiers, not real credentials.
+min_entropy_token_length = 24
+min_entropy = 4.2
+
+[files]
+text_suffixes = [
+  ".md",
+  ".toml",
+  ".json",
+  ".jsonl",
+  ".yaml",
+  ".yml",
+  ".txt",
+  ".pkl",
+]
