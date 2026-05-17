@@ -2,6 +2,20 @@ export type ArmoryDistribution = "oci" | "registry";
 
 export type ArmoryKind = "extension" | "skill" | "persona" | "tone" | "agent" | "profile";
 
+export type ArmoryCompatibilityMode = {
+  runtime: string;
+  mode: string;
+  installCommand?: string;
+  entrypoints?: string[];
+};
+
+export type ArmoryCompatibility = {
+  tier: number;
+  native: ArmoryCompatibilityMode[];
+  degraded: ArmoryCompatibilityMode[];
+  notes: string[];
+};
+
 export type ArmoryItem = {
   kind: ArmoryKind;
   id: string;
@@ -29,6 +43,7 @@ export type ArmoryItem = {
   keywords: string[];
   files: string[];
   dependencies: ArmoryDependency[];
+  compatibility: ArmoryCompatibility;
   distribution: ArmoryDistribution;
 };
 

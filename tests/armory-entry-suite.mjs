@@ -397,6 +397,71 @@ describe('extension registry entries', () => {
   });
 });
 
+describe('generated catalog compatibility metadata', () => {
+  it('emits conservative compatibility contracts for every public site/API item', () => {
+    const generatedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omegon-armory-generated.'));
+    try {
+      const ociDir = path.join(generatedDir, 'oci');
+      const siteJson = path.join(generatedDir, 'armory.json');
+      const apiJson = path.join(generatedDir, 'api.json');
+      command('python3', ['scripts/build-oci-artifacts.py', '--out', ociDir], { timeout: 180_000 });
+      command(
+        'python3',
+        ['scripts/generate-site-data.py', '--oci', ociDir, '--out', siteJson, '--api', apiJson],
+        { timeout: 180_000 },
+      );
+
+      const sitePayload = JSON.parse(fs.readFileSync(siteJson, 'utf8'));
+      const apiPayload = JSON.parse(fs.readFileSync(apiJson, 'utf8'));
+      assert.equal(sitePayload.items.length, 28);
+      assert.deepEqual(apiPayload.items, sitePayload.items);
+
+      for (const item of sitePayload.items) {
+        assert.ok(item.compatibility, `${item.kind}/${item.id}: missing compatibility`);
+        assert.equal(Number.isInteger(item.compatibility.tier), true, `${item.kind}/${item.id}: tier must be an integer`);
+        assert.ok(item.compatibility.tier >= 0 && item.compatibility.tier <= 4, `${item.kind}/${item.id}: invalid tier`);
+        assert.ok(Array.isArray(item.compatibility.native), `${item.kind}/${item.id}: native must be an array`);
+        assert.ok(Array.isArray(item.compatibility.degraded), `${item.kind}/${item.id}: degraded must be an array`);
+        assert.ok(Array.isArray(item.compatibility.notes), `${item.kind}/${item.id}: notes must be an array`);
+        assert.ok(
+          item.compatibility.native.some((mode) => mode.runtime === 'omegon'),
+          `${item.kind}/${item.id}: native compatibility must include omegon`,
+        );
+        assert.ok(item.compatibility.degraded.length > 0, `${item.kind}/${item.id}: missing degraded mode`);
+
+        for (const mode of [...item.compatibility.native, ...item.compatibility.degraded]) {
+          assert.ok(mode.runtime, `${item.kind}/${item.id}: compatibility mode missing runtime`);
+          assert.ok(mode.mode, `${item.kind}/${item.id}: compatibility mode missing mode`);
+          if (mode.entrypoints) {
+            assert.ok(Array.isArray(mode.entrypoints), `${item.kind}/${item.id}: entrypoints must be an array`);
+            for (const entrypoint of mode.entrypoints) {
+              if (entrypoint.endsWith('Url')) continue;
+              assert.ok(
+                item.files.includes(entrypoint),
+                `${item.kind}/${item.id}: compatibility entrypoint ${entrypoint} not in files`,
+              );
+            }
+          }
+        }
+
+        if (item.kind === 'extension') {
+          assert.equal(item.compatibility.tier, 0, `${item.id}: extensions should not claim portable callability yet`);
+          assert.ok(
+            item.compatibility.notes.some((note) => note.includes('MCP, CLI, or HTTP')),
+            `${item.id}: extension should explain portable interface requirement`,
+          );
+        } else if (item.kind === 'profile' || item.kind === 'agent') {
+          assert.equal(item.compatibility.tier, 2, `${item.kind}/${item.id}: expected manifest-compatible tier`);
+        } else {
+          assert.equal(item.compatibility.tier, 1, `${item.kind}/${item.id}: expected prompt-compatible tier`);
+        }
+      }
+    } finally {
+      fs.rmSync(generatedDir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('OCI example tool contract', () => {
   it('returns JSON errors without importing optional analytics dependencies', () => {
     const result = spawnSync('python3', ['examples/oci-tool/tool.py'], {

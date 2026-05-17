@@ -375,6 +375,105 @@ def extension_capabilities(detail_path: Path) -> list[str]:
     return sorted(values)
 
 
+
+def compatibility_for_item(item: dict) -> dict:
+    """Return conservative cross-runtime compatibility metadata for a generated catalog item."""
+    kind = item.get("kind", "")
+    install_command = item.get("installCommand", "")
+    files = set(item.get("files", []))
+
+    native_modes = {
+        "skill": "plugin",
+        "persona": "plugin",
+        "tone": "plugin",
+        "profile": "profile",
+        "agent": "catalog-agent",
+        "extension": "extension",
+    }
+    compatibility = {
+        "tier": 0,
+        "native": [
+            {
+                "runtime": "omegon",
+                "mode": native_modes.get(kind, "package"),
+                "installCommand": install_command,
+            }
+        ],
+        "degraded": [],
+        "notes": [],
+    }
+
+    if kind == "skill":
+        compatibility["tier"] = 1
+        compatibility["degraded"].append(
+            {
+                "runtime": "generic-agent",
+                "mode": "instructions",
+                "entrypoints": ["SKILL.md"] if "SKILL.md" in files else item.get("files", []),
+            }
+        )
+    elif kind == "persona":
+        compatibility["tier"] = 1
+        compatibility["degraded"].append(
+            {
+                "runtime": "generic-agent",
+                "mode": "system-prompt",
+                "entrypoints": ["PERSONA.md"] if "PERSONA.md" in files else item.get("files", []),
+            }
+        )
+        if any(file.startswith("mind/") for file in files):
+            compatibility["notes"].append(
+                "Memory seed files are optional and may be ignored by non-Omegon runtimes."
+            )
+    elif kind == "tone":
+        compatibility["tier"] = 1
+        compatibility["degraded"].append(
+            {
+                "runtime": "generic-agent",
+                "mode": "style-instructions",
+                "entrypoints": ["TONE.md"] if "TONE.md" in files else item.get("files", []),
+            }
+        )
+    elif kind == "profile":
+        compatibility["tier"] = 2
+        compatibility["degraded"].append(
+            {
+                "runtime": "generic-agent",
+                "mode": "dependency-manifest",
+                "entrypoints": [entry for entry in ["profile.toml", "README.md"] if entry in files],
+            }
+        )
+        compatibility["notes"].append(
+            "Profiles require dependency resolution before prompt export outside Omegon."
+        )
+    elif kind == "agent":
+        compatibility["tier"] = 2
+        compatibility["degraded"].append(
+            {
+                "runtime": "generic-agent",
+                "mode": "agent-blueprint",
+                "entrypoints": [entry for entry in ["agent.toml", "PERSONA.md"] if entry in files],
+            }
+        )
+        if "agent.pkl" in files:
+            compatibility["notes"].append(
+                "agent.pkl is Omegon-native and may be ignored by other runtimes."
+            )
+    elif kind == "extension":
+        compatibility["tier"] = 0
+        compatibility["degraded"].append(
+            {
+                "runtime": "generic-agent",
+                "mode": "external-tool-reference",
+                "entrypoints": ["repositoryUrl", "homepageUrl"],
+            }
+        )
+        compatibility["notes"].append(
+            "Portable callable interfaces require explicit MCP, CLI, or HTTP metadata."
+        )
+
+    return compatibility
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--oci", default="site/.cache/oci")
@@ -391,6 +490,8 @@ def main() -> None:
     items.extend(profile_catalog(repo, oci, extension_registry))
     items.extend(catalog_agents(repo, oci))
     items.sort(key=lambda item: (item["kind"], item["id"]))
+    for item in items:
+        item["compatibility"] = compatibility_for_item(item)
 
     registry = ""
     index_path = Path(args.oci) / "index.json"

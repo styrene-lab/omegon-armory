@@ -67,6 +67,33 @@ const hasDistinctHomepage =
           </>
         )}
 
+        <h2>Compatibility</h2>
+        <div class="dependency-list">
+          {item.compatibility.native.map((mode) => (
+            <div class="dependency-card">
+              <div>
+                <strong>Native: {mode.runtime}</strong>
+                <span>{mode.mode}</span>
+              </div>
+              {mode.installCommand && <code>{mode.installCommand}</code>}
+            </div>
+          ))}
+          {item.compatibility.degraded.map((mode) => (
+            <div class="dependency-card">
+              <div>
+                <strong>Degraded: {mode.runtime}</strong>
+                <span>{mode.mode}</span>
+              </div>
+              {mode.entrypoints && mode.entrypoints.length > 0 && <code>{mode.entrypoints.join(", ")}</code>}
+            </div>
+          ))}
+        </div>
+        {item.compatibility.notes.length > 0 && (
+          <ul class="file-list">
+            {item.compatibility.notes.map((note) => <li>{note}</li>)}
+          </ul>
+        )}
+
         {item.dependencies.length > 0 && (
           <>
             <h2>Dependencies</h2>
@@ -98,6 +125,7 @@ const hasDistinctHomepage =
           {hasDistinctRepository && <div><dt>Repository</dt><dd><a href={item.repositoryUrl}>{item.repositoryUrl}</a></dd></div>}
           <div><dt>Armory Metadata</dt><dd><a href={item.armoryUrl}>{item.sourcePath}</a></dd></div>
           <div><dt>Distribution</dt><dd>{item.distribution === "oci" ? "OCI artifact" : "Extension registry"}</dd></div>
+          <div><dt>Compatibility Tier</dt><dd>{item.compatibility.tier}</dd></div>
           {item.manifestId && <div><dt>Manifest ID</dt><dd><code>{item.manifestId}</code></dd></div>}
           {item.ociRef && <div><dt>OCI Ref</dt><dd><code>{item.ociRef}</code></dd></div>}
           {item.artifactType && <div><dt>Artifact Type</dt><dd><code>{item.artifactType}</code></dd></div>}
