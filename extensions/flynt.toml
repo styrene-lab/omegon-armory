@@ -28,3 +28,17 @@ list_design_nodes = "List all design nodes, optionally filtered by status"
 enabled = true
 max_facts = 500
 retention_days = 90
+
+[interfaces.omegon]
+status = "supported"
+install = "omegon extension install flynt"
+
+[interfaces.cli]
+status = "none"
+
+[interfaces.mcp]
+status = "none"
+tools = []
+
+[interfaces.http]
+status = "none"

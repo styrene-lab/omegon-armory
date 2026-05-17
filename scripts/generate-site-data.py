@@ -273,7 +273,8 @@ def extensions(repo: Path) -> list[dict]:
         if not isinstance(entry, dict) or not entry.get("enabled", True):
             continue
         detail_path = repo / "extensions" / f"{ext_id}.toml"
-        detail = load_toml(detail_path).get("extension", {}) if detail_path.exists() else {}
+        detail_manifest = load_toml(detail_path) if detail_path.exists() else {}
+        detail = detail_manifest.get("extension", {})
         files = [str(detail_path.relative_to(repo))] if detail_path.exists() else []
         repo_url = entry["repo"]
         homepage = detail.get("homepage", repo_url)
@@ -306,6 +307,7 @@ def extensions(repo: Path) -> list[dict]:
                 "keywords": keywords("extension", ext_id, entry["category"], entry["description"]),
                 "files": files,
                 "dependencies": [],
+                "interfaces": normalize_interfaces(detail_manifest.get("interfaces", {})),
                 "distribution": "registry",
             }
         )
@@ -363,6 +365,20 @@ def agent_dependencies(agent_manifest: dict, extension_registry: dict) -> list[d
         if isinstance(entry, dict)
     })
 
+
+
+def normalize_interfaces(interfaces: dict) -> dict:
+    normalized = {}
+    for name in ["omegon", "mcp", "cli", "http"]:
+        raw = interfaces.get(name, {}) if isinstance(interfaces, dict) else {}
+        if not isinstance(raw, dict):
+            raw = {}
+        entry = {"status": raw.get("status", "none")}
+        for key, value in raw.items():
+            if key != "status":
+                entry[key] = value
+        normalized[name] = entry
+    return normalized
 
 def extension_capabilities(detail_path: Path) -> list[str]:
     if not detail_path.exists():
@@ -460,7 +476,13 @@ def compatibility_for_item(item: dict) -> dict:
                 "agent.pkl is Omegon-native and may be ignored by other runtimes."
             )
     elif kind == "extension":
-        compatibility["tier"] = 0
+        interfaces = item.get("interfaces", {})
+        portable = [
+            name
+            for name in ["mcp", "cli", "http"]
+            if interfaces.get(name, {}).get("status") == "supported"
+        ]
+        compatibility["tier"] = 3 if portable else 0
         compatibility["degraded"].append(
             {
                 "runtime": "generic-agent",
@@ -468,9 +490,22 @@ def compatibility_for_item(item: dict) -> dict:
                 "entrypoints": ["repositoryUrl", "homepageUrl"],
             }
         )
-        compatibility["notes"].append(
-            "Portable callable interfaces require explicit MCP, CLI, or HTTP metadata."
-        )
+        for name in portable:
+            compatibility["degraded"].append(
+                {
+                    "runtime": f"generic-{name}",
+                    "mode": f"{name}-interface",
+                    "entrypoints": ["interfaces"],
+                }
+            )
+        if portable:
+            compatibility["notes"].append(
+                f"Portable callable interface declared: {', '.join(portable)}."
+            )
+        else:
+            compatibility["notes"].append(
+                "Portable callable interfaces require explicit MCP, CLI, or HTTP metadata."
+            )
 
     return compatibility
 

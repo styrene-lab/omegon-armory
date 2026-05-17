@@ -23,3 +23,17 @@ discord = "Discord bot via gateway websocket"
 slack = "Slack app via Socket Mode"
 signal = "Signal messenger via signal-cli"
 email = "Email via IMAP/SMTP"
+
+[interfaces.omegon]
+status = "supported"
+install = "omegon extension install vox"
+
+[interfaces.cli]
+status = "none"
+
+[interfaces.mcp]
+status = "none"
+tools = []
+
+[interfaces.http]
+status = "none"

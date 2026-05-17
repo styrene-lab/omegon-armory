@@ -94,6 +94,26 @@ const hasDistinctHomepage =
           </ul>
         )}
 
+        {item.interfaces && (
+          <>
+            <h2>Extension Interfaces</h2>
+            <div class="dependency-list">
+              {Object.entries(item.interfaces).map(([name, details]) => (
+                <div class="dependency-card">
+                  <div>
+                    <strong>{name}</strong>
+                    <span>{String(details.status)}</span>
+                  </div>
+                  {details.install && <code>{String(details.install)}</code>}
+                  {details.binary && <code>{String(details.binary)}</code>}
+                  {Array.isArray(details.commands) && details.commands.length > 0 && <code>{details.commands.join(", ")}</code>}
+                  {Array.isArray(details.tools) && details.tools.length > 0 && <code>{details.tools.join(", ")}</code>}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
         {item.dependencies.length > 0 && (
           <>
             <h2>Dependencies</h2>

@@ -27,3 +27,19 @@ agent_browser = "Vercel agent-browser CLI must be installed separately and avail
 [security]
 allowed_domains = "Use per-call or configured domain allowlists for authenticated browser sessions"
 session_state = "Keep state files out of git; they can contain login material"
+
+[interfaces.omegon]
+status = "supported"
+install = "omegon extension install omegon-browser"
+
+[interfaces.cli]
+status = "supported"
+binary = "agent-browser"
+commands = ["agent-browser"]
+
+[interfaces.mcp]
+status = "none"
+tools = []
+
+[interfaces.http]
+status = "none"

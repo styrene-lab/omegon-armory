@@ -71,3 +71,17 @@ agent_forwarding = "Explicitly disabled. The agent's identity keys never leave t
 key_isolation = "Each identity_label derives a cryptographically distinct Ed25519 key. Compromising one host's authorized_keys reveals nothing about other hosts."
 command_audit = "Every ssh_exec and ssh_script invocation is logged with host, command hash, timestamp, identity_label, and exit code."
 output_limits = "Responses are truncated to max_output_bytes to prevent unbounded context consumption."
+
+[interfaces.omegon]
+status = "supported"
+install = "omegon extension install shuttle"
+
+[interfaces.cli]
+status = "none"
+
+[interfaces.mcp]
+status = "none"
+tools = []
+
+[interfaces.http]
+status = "none"

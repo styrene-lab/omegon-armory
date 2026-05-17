@@ -21,3 +21,17 @@ models = "Local model catalog browser"
 
 [requirements]
 comfyui = "Requires a running ComfyUI instance (local or remote)"
+
+[interfaces.omegon]
+status = "supported"
+install = "omegon extension install scry"
+
+[interfaces.cli]
+status = "none"
+
+[interfaces.mcp]
+status = "none"
+tools = []
+
+[interfaces.http]
+status = "none"

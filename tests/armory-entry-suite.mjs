@@ -384,6 +384,26 @@ describe('extension registry entries', () => {
       assert.ok(extension.maintainer);
       assert.ok(extension.license);
       assert.match(extension.min_sdk, /^\d+\.\d+$/);
+      const detailPath = `extensions/${extension.id}.toml`;
+      assert.ok(exists(detailPath), `${extension.id}: missing extension detail file`);
+      const detail = parseToml(readText(detailPath));
+      assert.equal(
+        detail.interfaces?.omegon?.status,
+        'supported',
+        `${extension.id}: interfaces.omegon.status must be supported`,
+      );
+      assert.equal(
+        detail.interfaces?.omegon?.install,
+        `omegon extension install ${extension.id}`,
+        `${extension.id}: interfaces.omegon.install must match registry install command`,
+      );
+      for (const interfaceName of ['mcp', 'cli', 'http']) {
+        const status = detail.interfaces?.[interfaceName]?.status;
+        assert.ok(
+          ['supported', 'planned', 'none'].includes(status),
+          `${extension.id}: interfaces.${interfaceName}.status must be supported, planned, or none`,
+        );
+      }
       if (extension.enabled) {
         assert.ok(extension.asset_prefix, `${extension.id}: enabled extensions need asset_prefix`);
         assert.ok(extension.manifest_path, `${extension.id}: enabled extensions need manifest_path`);
@@ -445,10 +465,15 @@ describe('generated catalog compatibility metadata', () => {
         }
 
         if (item.kind === 'extension') {
-          assert.equal(item.compatibility.tier, 0, `${item.id}: extensions should not claim portable callability yet`);
-          assert.ok(
-            item.compatibility.notes.some((note) => note.includes('MCP, CLI, or HTTP')),
-            `${item.id}: extension should explain portable interface requirement`,
+          assert.ok(item.interfaces, `${item.id}: extension missing interface metadata`);
+          assert.equal(item.interfaces.omegon?.status, 'supported', `${item.id}: omegon interface must be supported`);
+          const portableInterfaces = ['mcp', 'cli', 'http'].filter(
+            (name) => item.interfaces[name]?.status === 'supported',
+          );
+          assert.equal(
+            item.compatibility.tier,
+            portableInterfaces.length > 0 ? 3 : 0,
+            `${item.id}: extension tier should reflect portable callable interfaces`,
           );
         } else if (item.kind === 'profile' || item.kind === 'agent') {
           assert.equal(item.compatibility.tier, 2, `${item.kind}/${item.id}: expected manifest-compatible tier`);

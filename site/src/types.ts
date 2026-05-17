@@ -16,6 +16,23 @@ export type ArmoryCompatibility = {
   notes: string[];
 };
 
+export type ArmoryInterface = {
+  status: "supported" | "planned" | "none" | string;
+  install?: string;
+  binary?: string;
+  commands?: string[];
+  tools?: string[];
+  transport?: string;
+  [key: string]: unknown;
+};
+
+export type ArmoryInterfaces = {
+  omegon?: ArmoryInterface;
+  mcp?: ArmoryInterface;
+  cli?: ArmoryInterface;
+  http?: ArmoryInterface;
+};
+
 export type ArmoryItem = {
   kind: ArmoryKind;
   id: string;
@@ -44,6 +61,7 @@ export type ArmoryItem = {
   files: string[];
   dependencies: ArmoryDependency[];
   compatibility: ArmoryCompatibility;
+  interfaces?: ArmoryInterfaces;
   distribution: ArmoryDistribution;
 };
 
