@@ -166,6 +166,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
         const matchesLicense = anyMatches(selectedLicenses, row.dataset.license);
         const show = matchesSearch && matchesCategory && matchesDistribution && matchesPublisher && matchesLicense;
         row.hidden = !show;
+        row.style.display = show ? "" : "none";
         if (show) visible += 1;
       }
 
