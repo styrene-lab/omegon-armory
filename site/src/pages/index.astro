@@ -33,28 +33,10 @@ const surfaces = [
 ---
 
 <BaseLayout>
-  <section class="artifact-hero">
-    <div>
-      <p class="eyebrow">Omegon Armory</p>
-      <h1>Reviewed agent ecosystem artifacts.</h1>
-      <p>
-        A clinical index of signed OCI payloads and registry-resolved extensions for Omegon.
-        Packages declare native behavior, degraded compatibility, provenance, and public-payload
-        safety posture.
-      </p>
-    </div>
-    <dl class="artifact-summary" aria-label="Registry summary">
-      <div><dt>Total entries</dt><dd>{items.length}</dd></div>
-      <div><dt>OCI artifacts</dt><dd>{stats.oci}</dd></div>
-      <div><dt>Registry installs</dt><dd>{stats.registry}</dd></div>
-      <div><dt>Generated</dt><dd>{generatedAt}</dd></div>
-    </dl>
-  </section>
-
-  <section class="artifact-hub" aria-label="Artifact hub">
+  <section class="artifact-hub artifact-hub-first" aria-label="Artifact hub">
     <div class="hub-panel primary">
       <p class="eyebrow">Browse</p>
-      <h2>Artifact surfaces</h2>
+      <h1>Artifact surfaces</h1>
       <div class="surface-list">
         {surfaces.map((surface) => (
           <a href={surface.href} class="surface-row">
@@ -74,8 +56,8 @@ const surfaces = [
       <dl class="endpoint-list">
         <div><dt>Catalog API</dt><dd><a href="/api/index.json">/api/index.json</a></dd></div>
         <div><dt>OCI namespace</dt><dd><code>{catalog.registry || "ghcr.io/styrene-lab/omegon-armory"}</code></dd></div>
-        <div><dt>Operations</dt><dd><a href="/docs/armory-operations">Publishing runbook</a></dd></div>
-        <div><dt>Compatibility</dt><dd><a href="/docs/compatibility">Degradation model</a></dd></div>
+        <div><dt>Total entries</dt><dd>{items.length}</dd></div>
+        <div><dt>Generated</dt><dd>{generatedAt}</dd></div>
       </dl>
     </div>
 
@@ -85,8 +67,16 @@ const surfaces = [
       <dl class="endpoint-list">
         <div><dt>Prompt-compatible</dt><dd>{stats.promptCompatible}</dd></div>
         <div><dt>Manifest-compatible</dt><dd>{stats.manifestCompatible}</dd></div>
-        <div><dt>Public payload lint</dt><dd><a href="/docs/public-payload-security">Security posture</a></dd></div>
+        <div><dt>Registry installs</dt><dd>{stats.registry}</dd></div>
+        <div><dt>OCI artifacts</dt><dd>{stats.oci}</dd></div>
       </dl>
     </div>
+  </section>
+
+  <section class="operator-links" aria-label="Operator references">
+    <a href="/docs/compatibility">Compatibility model</a>
+    <a href="/docs/public-payload-security">Public payload security</a>
+    <a href="/docs/armory-operations">Publishing runbook</a>
+    <a href="/about">About Armory</a>
   </section>
 </BaseLayout>

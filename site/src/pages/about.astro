@@ -1,0 +1,47 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="About Omegon Armory | Omegon Armory" description="What Omegon Armory publishes and how its artifacts are distributed.">
+  <article class="docs-page">
+    <p class="eyebrow">About</p>
+    <h1>Omegon Armory is an artifact registry for agent ecosystems.</h1>
+
+    <p>
+      Armory publishes reviewed agent ecosystem packages for Omegon: skills, personas, tones,
+      profiles, catalog agents, and extensions. The site is intentionally static. The generated
+      catalog API and package pages are derived from repository manifests.
+    </p>
+
+    <h2>Distribution surfaces</h2>
+    <p>
+      Skills, personas, tones, profiles, and catalog agents are packaged as signed OCI artifacts.
+      Extensions are resolved by name through the Omegon extension registry and installed from
+      upstream release metadata.
+    </p>
+
+    <h2>Compatibility posture</h2>
+    <p>
+      Omegon is the full-fidelity runtime. Other agent hosts can still consume many packages in
+      degraded form: instruction packs, role prompts, dependency manifests, agent blueprints, or
+      external tool references. Each generated catalog item declares its native and degraded
+      compatibility metadata.
+    </p>
+
+    <h2>Security posture</h2>
+    <p>
+      Public Armory payloads are treated as world-readable and mirrorable. Publication gates lint
+      package payloads for obvious secrets, private topology, private hostnames, private IPs, and
+      operational memory facts before release.
+    </p>
+
+    <h2>Operator references</h2>
+    <ul>
+      <li><a href="/api/index.json">Catalog API</a></li>
+      <li><a href="/docs/compatibility">Compatibility model</a></li>
+      <li><a href="/docs/public-payload-security">Public payload security</a></li>
+      <li><a href="/docs/oci-registry-stack">OCI registry stack</a></li>
+      <li><a href="/docs/armory-operations">Operations runbook</a></li>
+    </ul>
+  </article>
+</BaseLayout>
