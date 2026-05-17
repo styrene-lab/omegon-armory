@@ -8,12 +8,17 @@ type Props = {
 };
 
 const { items, title = "Packages", intro } = Astro.props;
+const kinds = Array.from(new Set(items.map((item) => item.kind).filter(Boolean))).sort();
 const categories = Array.from(new Set(items.map((item) => item.category).filter(Boolean))).sort();
 const licenses = Array.from(new Set(items.map((item) => item.license).filter(Boolean))).sort();
 const publishers = Array.from(new Set(items.map((item) => item.publisher).filter(Boolean))).sort();
+const tiers = Array.from(new Set(items.map((item) => String(item.compatibility.tier)))).sort();
 
 const countBy = (field: keyof ArmoryItem, value: string) =>
   items.filter((item) => item[field] === value).length;
+
+const countTier = (tier: string) =>
+  items.filter((item) => String(item.compatibility.tier) === tier).length;
 
 const hasDistinctRepository = (item: ArmoryItem) =>
   item.repositoryUrl && item.repositoryUrl !== item.sourceUrl;
@@ -35,6 +40,28 @@ const hasDistinctRepository = (item: ArmoryItem) =>
         <span>Search packages</span>
         <input data-search type="search" placeholder="Search by name, category, ref, capability" autocomplete="off" />
       </label>
+
+      <fieldset>
+        <legend>Kind</legend>
+        {kinds.map((kind) => (
+          <label class="check-row">
+            <input data-kind-filter type="checkbox" value={kind} />
+            <span>{kind}</span>
+            <small>{countBy("kind", kind)}</small>
+          </label>
+        ))}
+      </fieldset>
+
+      <fieldset>
+        <legend>Compatibility tier</legend>
+        {tiers.map((tier) => (
+          <label class="check-row">
+            <input data-tier type="checkbox" value={tier} />
+            <span>Tier {tier}</span>
+            <small>{countTier(tier)}</small>
+          </label>
+        ))}
+      </fieldset>
 
       <fieldset>
         <legend>Distribution</legend>
@@ -94,6 +121,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
           data-publisher={item.publisher}
           data-license={item.license ?? ""}
           data-distribution={item.distribution}
+          data-tier={String(item.compatibility.tier)}
           data-search={`${item.name} ${item.id} ${item.kind} ${item.category} ${item.publisher} ${item.description} ${item.ociRef ?? ""} ${item.capabilities.join(" ")}`}
         >
           <div class="package-card-main">
@@ -103,6 +131,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
               <span class={`badge ${item.distribution === "oci" ? "badge-oci" : "badge-registry"}`}>
                 {item.distribution === "oci" ? "OCI artifact" : "Registry install"}
               </span>
+              <span class="badge">Tier {item.compatibility.tier}</span>
               {item.official && <span class="badge badge-verified">Official</span>}
             </div>
             <p>{item.description}</p>
@@ -139,6 +168,8 @@ const hasDistinctRepository = (item: ArmoryItem) =>
     const root = document.querySelector("[data-catalog]");
     if (root) {
     const search = root.querySelector("[data-search]");
+    const kindInputs = Array.from(root.querySelectorAll("[data-kind-filter]"));
+    const tierInputs = Array.from(root.querySelectorAll("[data-tier]"));
     const categoryInputs = Array.from(root.querySelectorAll("[data-category]"));
     const distributionInputs = Array.from(root.querySelectorAll("[data-distribution]"));
     const publisherInputs = Array.from(root.querySelectorAll("[data-publisher]"));
@@ -152,6 +183,8 @@ const hasDistinctRepository = (item: ArmoryItem) =>
 
     const apply = () => {
       const q = search.value.trim().toLowerCase();
+      const selectedKinds = selected(kindInputs);
+      const selectedTiers = selected(tierInputs);
       const selectedCategories = selected(categoryInputs);
       const selectedDistributions = selected(distributionInputs);
       const selectedPublishers = selected(publisherInputs);
@@ -160,11 +193,13 @@ const hasDistinctRepository = (item: ArmoryItem) =>
 
       for (const row of rows) {
         const matchesSearch = !q || row.dataset.search.toLowerCase().includes(q);
+        const matchesKind = anyMatches(selectedKinds, row.dataset.kind);
+        const matchesTier = anyMatches(selectedTiers, row.dataset.tier);
         const matchesCategory = anyMatches(selectedCategories, row.dataset.category);
         const matchesDistribution = anyMatches(selectedDistributions, row.dataset.distribution);
         const matchesPublisher = anyMatches(selectedPublishers, row.dataset.publisher);
         const matchesLicense = anyMatches(selectedLicenses, row.dataset.license);
-        const show = matchesSearch && matchesCategory && matchesDistribution && matchesPublisher && matchesLicense;
+        const show = matchesSearch && matchesKind && matchesTier && matchesCategory && matchesDistribution && matchesPublisher && matchesLicense;
         row.hidden = !show;
         row.style.display = show ? "" : "none";
         if (show) visible += 1;
@@ -175,7 +210,7 @@ const hasDistinctRepository = (item: ArmoryItem) =>
     };
 
     search.addEventListener("input", apply);
-    for (const input of [...categoryInputs, ...distributionInputs, ...publisherInputs, ...licenseInputs]) {
+    for (const input of [...kindInputs, ...tierInputs, ...categoryInputs, ...distributionInputs, ...publisherInputs, ...licenseInputs]) {
       input.addEventListener("change", apply);
     }
     apply();
