@@ -1,0 +1,45 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Compatibility Model | Omegon Armory" description="How Armory packages degrade outside native Omegon runtimes.">
+  <article class="docs-page">
+    <p class="eyebrow">Compatibility</p>
+    <h1>Full fidelity in Omegon. Graceful degradation elsewhere.</h1>
+
+    <p>
+      Armory packages are native Omegon artifacts, but most also have useful degraded forms for
+      other agent hosts. The generated catalog API exposes this through each item's
+      <code>compatibility</code> metadata.
+    </p>
+
+    <h2>Compatibility tiers</h2>
+    <ul>
+      <li><strong>Tier 0:</strong> human-readable metadata or external tool reference.</li>
+      <li><strong>Tier 1:</strong> prompt-compatible instructions, role prompts, or style guidance.</li>
+      <li><strong>Tier 2:</strong> manifest-compatible dependency graphs or agent blueprints.</li>
+      <li><strong>Tier 3:</strong> portable callable interface such as MCP, CLI, or HTTP.</li>
+      <li><strong>Tier 4:</strong> full native runtime support.</li>
+    </ul>
+
+    <h2>Package behavior</h2>
+    <ul>
+      <li><strong>Skills:</strong> degrade to instruction packs.</li>
+      <li><strong>Personas:</strong> degrade to system or role prompts.</li>
+      <li><strong>Tones:</strong> degrade to style instructions.</li>
+      <li><strong>Profiles:</strong> degrade to dependency manifests that require resolution.</li>
+      <li><strong>Agents:</strong> degrade to agent blueprints; <code>agent.pkl</code> remains Omegon-native.</li>
+      <li><strong>Extensions:</strong> degrade to external tool references unless MCP, CLI, or HTTP interfaces are explicitly declared.</li>
+    </ul>
+
+    <h2>Browse compatibility metadata</h2>
+    <p>
+      Use the full catalog to inspect every item, or read the raw API for machine consumption.
+    </p>
+    <ul>
+      <li><a href="/catalog">All packages</a></li>
+      <li><a href="/api/index.json">Catalog API</a></li>
+      <li><a href="https://github.com/styrene-lab/omegon-armory/blob/main/docs/compatibility.md">Full source document</a></li>
+    </ul>
+  </article>
+</BaseLayout>

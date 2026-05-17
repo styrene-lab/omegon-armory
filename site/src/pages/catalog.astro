@@ -1,0 +1,16 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PackageTable from "../components/PackageTable.astro";
+import data from "../data/armory.json";
+import type { ArmoryItem } from "../types";
+
+const items = data.items as ArmoryItem[];
+---
+
+<BaseLayout title="All Packages | Omegon Armory" description="Browse and filter every public Omegon Armory package.">
+  <PackageTable
+    items={items}
+    title="All Packages"
+    intro="Browse every public Armory entry. Use filters to narrow by distribution, category, publisher, and license."
+  />
+</BaseLayout>

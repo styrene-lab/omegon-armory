@@ -1,0 +1,46 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Public Payload Security | Omegon Armory" description="Public Armory payload linting and security posture.">
+  <article class="docs-page">
+    <p class="eyebrow">Security</p>
+    <h1>Public payloads are treated as world-readable and mirrorable.</h1>
+
+    <p>
+      Armory packages can be consumed by Omegon and by other agent runtimes in degraded form. That
+      means package metadata, memory facts, manifests, and examples may become prompt context in
+      downstream tools. Publication gates therefore lint the public package surface before release.
+    </p>
+
+    <h2>Linted risks</h2>
+    <ul>
+      <li>raw API keys, tokens, passwords, and private keys;</li>
+      <li>private IP addresses and hostnames;</li>
+      <li>configured private topology terms;</li>
+      <li>high-entropy token-shaped strings;</li>
+      <li>private operational memory facts.</li>
+    </ul>
+
+    <h2>Policy</h2>
+    <p>
+      The scanner is configured by <code>security/public-payload-lint.toml</code>. Public Armory keeps
+      this policy strict. Private or federated Armories should carry their own deny terms for local
+      topology.
+    </p>
+
+    <h2>Why this matters</h2>
+    <p>
+      A leak in Armory is not just a website leak. It can propagate into exported instructions,
+      generated project rules, mirrored OCI artifacts, model context windows, and downstream agent
+      summaries.
+    </p>
+
+    <h2>References</h2>
+    <ul>
+      <li><a href="/catalog">All packages</a></li>
+      <li><a href="/docs/compatibility">Compatibility model</a></li>
+      <li><a href="https://github.com/styrene-lab/omegon-armory/blob/main/docs/public-payload-security.md">Full source document</a></li>
+    </ul>
+  </article>
+</BaseLayout>
