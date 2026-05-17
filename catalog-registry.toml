@@ -18,7 +18,7 @@
 name = "Business Development"
 version = "1.0.0"
 domain = "ops"
-description = "Engagement tracking, opportunity assessment, proposal drafting, and client reporting using Flynt boards and Sentry run data."
+description = "Engagement tracking, opportunity assessment, proposal drafting, and client reporting using Flynt boards and agent run history."
 files = ["agent.toml", "agent.pkl", "PERSONA.md", "mind/facts.jsonl"]
 
 ["styrene.coding-agent"]

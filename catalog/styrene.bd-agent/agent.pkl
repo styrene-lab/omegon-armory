@@ -4,7 +4,7 @@ agent {
   id = "styrene.bd-agent"
   name = "Business Development"
   version = "1.0.0"
-  description = "Engagement tracking, opportunity assessment, proposal drafting, and client reporting using Flynt boards and Sentry run data."
+  description = "Engagement tracking, opportunity assessment, proposal drafting, and client reporting using Flynt boards and agent run history."
   domain = "ops"
 }
 
@@ -57,6 +57,6 @@ triggers {
   new {
     name = "weekly-status-report"
     schedule = "weekly"
-    template = "Generate a weekly action report from Flynt engagement boards and Sentry run history for the current week. Use the report skill conventions: summarize accomplishments by engagement, flag blockers, list next steps."
+    template = "Generate a weekly action report from Flynt engagement boards and agent run history for the current week. Use the report skill conventions: summarize accomplishments by engagement, flag blockers, list next steps."
   }
 }
