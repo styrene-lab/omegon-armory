@@ -65,6 +65,12 @@ export type ArmoryItem = {
   distribution: ArmoryDistribution;
 };
 
+export type ArmoryDependencyCompatibility = {
+  tier: number;
+  mode: string;
+  nativeOnly?: boolean;
+};
+
 export type ArmoryDependency = {
   kind: ArmoryKind;
   id: string;
@@ -72,6 +78,7 @@ export type ArmoryDependency = {
   required: boolean;
   enabled?: boolean;
   installCommand?: string;
+  compatibility?: ArmoryDependencyCompatibility;
 };
 
 export type ArmoryData = {

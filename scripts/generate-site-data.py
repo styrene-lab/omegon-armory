@@ -83,6 +83,21 @@ def dependency_install_command(dep: dict) -> str:
     return ""
 
 
+def dependency_compatibility(dep: dict, enabled: bool = True) -> dict:
+    kind = dep.get("kind", "")
+    if kind in {"skill", "persona", "tone"}:
+        return {"tier": 1, "mode": "prompt-compatible"}
+    if kind in {"profile", "agent"}:
+        return {"tier": 2, "mode": "manifest-compatible"}
+    if kind == "extension":
+        return {
+            "tier": 0,
+            "mode": "native-extension" if enabled else "staged-extension",
+            "nativeOnly": True,
+        }
+    return {"tier": 0, "mode": "unknown"}
+
+
 def normalize_dependencies(deps: list[dict], enabled_extensions: dict[str, bool] | None = None) -> list[dict]:
     values = []
     enabled_extensions = enabled_extensions or {}
@@ -100,6 +115,7 @@ def normalize_dependencies(deps: list[dict], enabled_extensions: dict[str, bool]
                 "required": bool(dep.get("required", True)),
                 "enabled": enabled,
                 "installCommand": dependency_install_command(dep),
+                "compatibility": dependency_compatibility(dep, enabled),
             }
         )
     return values

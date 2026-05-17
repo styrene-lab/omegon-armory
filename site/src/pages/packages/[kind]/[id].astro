@@ -122,9 +122,13 @@ const hasDistinctHomepage =
                 <div class="dependency-card">
                   <div>
                     <strong>{dependency.id}</strong>
-                    <span>{dependency.kind}{dependency.version ? ` ${dependency.version}` : ""}</span>
+                    <span>
+                      {dependency.kind}{dependency.version ? ` ${dependency.version}` : ""}
+                      {dependency.compatibility ? ` · tier ${dependency.compatibility.tier} · ${dependency.compatibility.mode}` : ""}
+                    </span>
                   </div>
                   {dependency.enabled === false && <span class="badge badge-warning">not enabled</span>}
+                  {dependency.compatibility?.nativeOnly && <span class="badge badge-warning">native only</span>}
                   {dependency.installCommand && <code>{dependency.installCommand}</code>}
                 </div>
               ))}

@@ -518,6 +518,15 @@ describe('generated catalog compatibility metadata', () => {
           }
         }
 
+        for (const dependency of item.dependencies || []) {
+          assert.ok(dependency.compatibility, `${item.kind}/${item.id}: dependency ${dependency.id} missing compatibility`);
+          assert.equal(Number.isInteger(dependency.compatibility.tier), true, `${item.kind}/${item.id}: dependency tier must be integer`);
+          assert.ok(dependency.compatibility.mode, `${item.kind}/${item.id}: dependency mode missing`);
+          if (dependency.kind === 'extension') {
+            assert.equal(dependency.compatibility.nativeOnly, true, `${item.kind}/${item.id}: extension dependencies must be marked nativeOnly`);
+          }
+        }
+
         if (item.kind === 'extension') {
           assert.ok(item.interfaces, `${item.id}: extension missing interface metadata`);
           assert.equal(item.interfaces.omegon?.status, 'supported', `${item.id}: omegon interface must be supported`);
