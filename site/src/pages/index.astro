@@ -1,6 +1,5 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import PackageTable from "../components/PackageTable.astro";
 import data from "../data/armory.json";
 import type { ArmoryData, ArmoryItem } from "../types";
 
@@ -19,48 +18,75 @@ const stats = {
   agents: items.filter((item) => item.kind === "agent").length,
   profiles: items.filter((item) => item.kind === "profile").length,
   oci: items.filter((item) => item.distribution === "oci").length,
-  registry: items.filter((item) => item.distribution === "registry").length
+  registry: items.filter((item) => item.distribution === "registry").length,
+  promptCompatible: items.filter((item) => item.compatibility.tier === 1).length,
+  manifestCompatible: items.filter((item) => item.compatibility.tier === 2).length,
 };
+const surfaces = [
+  { label: "Skills", href: "/skills", count: stats.skills, note: "Instruction packs" },
+  { label: "Personas", href: "/personas", count: stats.personas, note: "Role prompts" },
+  { label: "Tones", href: "/tones", count: stats.tones, note: "Style adapters" },
+  { label: "Profiles", href: "/profiles", count: stats.profiles, note: "Dependency manifests" },
+  { label: "Agents", href: "/agents", count: stats.agents, note: "Catalog blueprints" },
+  { label: "Extensions", href: "/extensions", count: stats.extensions, note: "Native tool packages" },
+];
 ---
 
 <BaseLayout>
-  <section class="overview-band">
+  <section class="artifact-hero">
     <div>
-      <p class="eyebrow">Omegon ecosystem catalog</p>
-      <h1>Browse extensions, skills, personas, tones, profiles, and agent bundles.</h1>
+      <p class="eyebrow">Omegon Armory</p>
+      <h1>Reviewed agent ecosystem artifacts.</h1>
       <p>
-        Armory entries are reviewed in GitHub. Skills, personas, tones, and agent bundles are
-        published as signed OCI artifacts; extensions resolve through the Omegon extension
-        registry to their upstream release metadata.
+        A clinical index of signed OCI payloads and registry-resolved extensions for Omegon.
+        Packages declare native behavior, degraded compatibility, provenance, and public-payload
+        safety posture.
       </p>
     </div>
-    <dl class="stats-grid">
-      <div><dt>Extensions</dt><dd>{stats.extensions}</dd></div>
-      <div><dt>Skills</dt><dd>{stats.skills}</dd></div>
-      <div><dt>Personas</dt><dd>{stats.personas}</dd></div>
-      <div><dt>Tones</dt><dd>{stats.tones}</dd></div>
-      <div><dt>Agents</dt><dd>{stats.agents}</dd></div>
-      <div><dt>Profiles</dt><dd>{stats.profiles}</dd></div>
+    <dl class="artifact-summary" aria-label="Registry summary">
+      <div><dt>Total entries</dt><dd>{items.length}</dd></div>
       <div><dt>OCI artifacts</dt><dd>{stats.oci}</dd></div>
       <div><dt>Registry installs</dt><dd>{stats.registry}</dd></div>
-    </dl>
-  </section>
-
-  <section class="registry-status" aria-label="Registry status">
-    <div>
-      <p class="eyebrow">Distribution</p>
-      <h2>Published from GitHub to Cloudflare Pages and GHCR.</h2>
-    </div>
-    <dl>
-      <div><dt>Catalog API</dt><dd><a href="/api/index.json">/api/index.json</a></dd></div>
-      <div><dt>OCI namespace</dt><dd><code>{catalog.registry || "ghcr.io/styrene-lab/omegon-armory"}</code></dd></div>
       <div><dt>Generated</dt><dd>{generatedAt}</dd></div>
     </dl>
   </section>
 
-  <PackageTable
-    items={items}
-    title="Armory Packages"
-    intro="Filter the catalog, inspect package metadata, then install from Omegon. OCI-backed entries include ORAS pull refs, payload digests, and cosign verification commands."
-  />
+  <section class="artifact-hub" aria-label="Artifact hub">
+    <div class="hub-panel primary">
+      <p class="eyebrow">Browse</p>
+      <h2>Artifact surfaces</h2>
+      <div class="surface-list">
+        {surfaces.map((surface) => (
+          <a href={surface.href} class="surface-row">
+            <span>
+              <strong>{surface.label}</strong>
+              <small>{surface.note}</small>
+            </span>
+            <code>{surface.count}</code>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <div class="hub-panel">
+      <p class="eyebrow">Distribution</p>
+      <h2>Registry endpoints</h2>
+      <dl class="endpoint-list">
+        <div><dt>Catalog API</dt><dd><a href="/api/index.json">/api/index.json</a></dd></div>
+        <div><dt>OCI namespace</dt><dd><code>{catalog.registry || "ghcr.io/styrene-lab/omegon-armory"}</code></dd></div>
+        <div><dt>Operations</dt><dd><a href="/docs/armory-operations">Publishing runbook</a></dd></div>
+        <div><dt>Compatibility</dt><dd><a href="/docs/compatibility">Degradation model</a></dd></div>
+      </dl>
+    </div>
+
+    <div class="hub-panel">
+      <p class="eyebrow">Compatibility</p>
+      <h2>Portable use</h2>
+      <dl class="endpoint-list">
+        <div><dt>Prompt-compatible</dt><dd>{stats.promptCompatible}</dd></div>
+        <div><dt>Manifest-compatible</dt><dd>{stats.manifestCompatible}</dd></div>
+        <div><dt>Public payload lint</dt><dd><a href="/docs/public-payload-security">Security posture</a></dd></div>
+      </dl>
+    </div>
+  </section>
 </BaseLayout>

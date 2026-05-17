@@ -769,3 +769,142 @@ pre {
     columns: 1;
   }
 }
+
+.artifact-hero,
+.artifact-hub {
+  width: min(var(--max), calc(100vw - 40px));
+  margin: 0 auto;
+}
+
+.artifact-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 40px;
+  align-items: end;
+  padding: 72px 0 34px;
+  border-bottom: 1px solid var(--line);
+}
+
+.artifact-hero h1 {
+  margin: 0;
+  font-size: clamp(42px, 5vw, 68px);
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+  max-width: 760px;
+}
+
+.artifact-hero p {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.58;
+  max-width: 760px;
+}
+
+.artifact-summary {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin: 0;
+  overflow: hidden;
+}
+
+.artifact-summary div,
+.endpoint-list div {
+  display: grid;
+  gap: 5px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.artifact-summary div:last-child,
+.endpoint-list div:last-child {
+  border-bottom: 0;
+}
+
+.artifact-summary dd {
+  color: var(--soft);
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.artifact-hub {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: 16px;
+  padding: 24px 0 72px;
+}
+
+.hub-panel {
+  background: rgba(10, 16, 28, 0.62);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.hub-panel.primary {
+  background: rgba(12, 19, 32, 0.78);
+}
+
+.hub-panel h2 {
+  margin: 0 0 14px;
+  font-size: 22px;
+  letter-spacing: -0.035em;
+}
+
+.surface-list {
+  display: grid;
+  gap: 8px;
+}
+
+.surface-row {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: inherit;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  text-decoration: none;
+}
+
+.surface-row:hover {
+  border-color: var(--line-strong);
+}
+
+.surface-row strong,
+.surface-row small {
+  display: block;
+}
+
+.surface-row small {
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.surface-row code {
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.endpoint-list {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.endpoint-list dd {
+  color: var(--soft);
+  overflow-wrap: anywhere;
+}
+
+.endpoint-list code {
+  color: #dbeafe;
+}
+
+@media (max-width: 920px) {
+  .artifact-hero,
+  .artifact-hub {
+    grid-template-columns: 1fr;
+  }
+}
