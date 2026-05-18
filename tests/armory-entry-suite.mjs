@@ -37,6 +37,37 @@ const VALID_EXTENSION_CATEGORIES = new Set([
 ]);
 const VALID_AGENT_DOMAINS = new Set(['chat', 'coding', 'infra', 'ops']);
 
+const ENV_NAME_RE = /^[A-Z_][A-Z0-9_]*$/;
+const SECRET_REF_RE = /^([A-Z_][A-Z0-9_]*|\{[A-Z_][A-Z0-9_]*\})$/;
+
+function assertNamesOnlySecrets(secrets, label) {
+  if (!secrets) return;
+  for (const name of [...(secrets.required || []), ...(secrets.optional || [])]) {
+    assert.match(name, ENV_NAME_RE, `${label}: secret name '${name}' should be an env-style name`);
+  }
+  for (const [envName, secretRef] of Object.entries(secrets.env || {})) {
+    assert.match(envName, ENV_NAME_RE, `${label}: secret env alias '${envName}' should be an env-style name`);
+    assert.match(
+      secretRef,
+      SECRET_REF_RE,
+      `${label}: secret env value for '${envName}' must be SECRET_NAME or {SECRET_NAME}, not a literal value`,
+    );
+  }
+}
+
+function assertToolEnvAliases(tools, label) {
+  for (const tool of tools || []) {
+    for (const [envName, secretRef] of Object.entries(tool.env || {})) {
+      assert.match(envName, ENV_NAME_RE, `${label}:${tool.name || '<unnamed>'}: tool env alias '${envName}' should be an env-style name`);
+      assert.match(
+        secretRef,
+        SECRET_REF_RE,
+        `${label}:${tool.name || '<unnamed>'}: tool env value for '${envName}' must be SECRET_NAME or {SECRET_NAME}, not a literal value`,
+      );
+    }
+  }
+}
+
 function readText(relativePath) {
   return fs.readFileSync(path.join(ARMORY_ROOT, relativePath), 'utf8');
 }
@@ -239,6 +270,15 @@ const plugins = discoverPlugins();
 const catalogEntries = discoverCatalogEntries();
 const extensions = discoverExtensions();
 
+describe('secret env contract helpers', () => {
+  it('rejects malformed template refs and literal-looking values', () => {
+    assert.throws(() => assertNamesOnlySecrets({ env: { VAULT_TOKEN: '{VAULT_ROOT_TOKEN' } }, 'fixture'));
+    assert.throws(() => assertNamesOnlySecrets({ env: { VAULT_TOKEN: 'VAULT_ROOT_TOKEN}' } }, 'fixture'));
+    assert.throws(() => assertNamesOnlySecrets({ env: { VAULT_TOKEN: 'https://token@example.com' } }, 'fixture'));
+    assert.throws(() => assertNamesOnlySecrets({ env: { VAULT_TOKEN: 'abc123-secret-value' } }, 'fixture'));
+  });
+});
+
 describe('armory registry inventory', () => {
   it('has the expected public entry counts before publish', () => {
     assert.equal(plugins.length, 14, 'unexpected plugin/persona/tone/skill count');
@@ -362,6 +402,8 @@ describe('catalog agent entries', () => {
       const agent = parseToml(readText(`catalog/${entry.id}/agent.toml`));
       assert.equal(agent.agent?.id, entry.id);
       assert.equal(agent.agent?.name, entry.name);
+      assertNamesOnlySecrets(agent.secrets, entry.id);
+      assertToolEnvAliases(agent.tools, entry.id);
 
       const pkl = readText(`catalog/${entry.id}/agent.pkl`);
       assert.match(pkl, /amends "omegon:\/\/schema\/AgentManifest\.pkl"/);
