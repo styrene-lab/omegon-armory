@@ -96,7 +96,19 @@ jobs:
           print("Detail file check complete")
           EOF
 
+      - name: Install pinned Nex for forge validation
+        run: |
+          cargo install \
+            --git https://github.com/styrene-lab/nex \
+            --rev e7d2cbf54118b921bb1d7b90de6f2dbcfd734c90 \
+            --locked \
+            --debug
+          nex --version
+          nex forge check --help
+
       - name: Check forge templates
+        env:
+          ARMORY_REQUIRE_NEX: "1"
         run: python3 scripts/check-forge-templates.py
 
       - name: Build OCI artifact index
