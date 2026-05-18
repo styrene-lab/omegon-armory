@@ -1,0 +1,45 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Nex Forge Templates | Omegon Armory" description="How Armory distributes Nex-owned forge template payloads.">
+  <article class="docs-page">
+    <p class="eyebrow">Nex</p>
+    <h1>Forge templates are distributed by Armory and evaluated by Nex.</h1>
+
+    <p>
+      Armory treats forge templates as reviewed OCI packages. It indexes metadata, builds payload
+      tarballs, emits API records, and applies public-safety linting. Nex remains the owner of the
+      Pkl schema, evaluation semantics, image-build behavior, and destructive-operation controls.
+    </p>
+
+    <h2>Package layout</h2>
+    <pre><code>forge-templates/&lt;slug&gt;/
+├── forge.toml   # Armory package metadata
+├── forge.pkl    # canonical Nex payload
+└── README.md</code></pre>
+
+    <h2>OCI shape</h2>
+    <ul>
+      <li><strong>Reference:</strong> <code>ghcr.io/styrene-lab/omegon-armory/forge-templates/&lt;slug&gt;:&lt;version&gt;</code></li>
+      <li><strong>Media type:</strong> <code>application/vnd.styrene.nex.forge-template.v1+tar</code></li>
+      <li><strong>Native runtime:</strong> Nex</li>
+      <li><strong>Degraded runtime:</strong> generic agent blueprint using <code>forge.toml</code>, <code>forge.pkl</code>, and <code>README.md</code></li>
+    </ul>
+
+    <h2>Public safety gate</h2>
+    <p>
+      Public forge templates are scanned by the same payload lint gate as other Armory packages,
+      plus forge-specific hazards. Public templates must not include fixed raw disk targets,
+      private hostnames or IPs, join tokens, reusable first-server cluster initialization, or
+      site-local deployment topology.
+    </p>
+
+    <h2>Current template</h2>
+    <ul>
+      <li><a href="/packages/forge-template/minimal-workstation">Minimal Workstation</a></li>
+      <li><a href="/forge-templates">All forge templates</a></li>
+      <li><a href="https://github.com/styrene-lab/omegon-armory/blob/main/docs/nex-forge-templates.md">Full source document</a></li>
+    </ul>
+  </article>
+</BaseLayout>

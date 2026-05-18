@@ -29,7 +29,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       <li><strong>Tones:</strong> degrade to style instructions.</li>
       <li><strong>Profiles:</strong> degrade to dependency manifests that require resolution.</li>
       <li><strong>Agents:</strong> degrade to agent blueprints; <code>agent.pkl</code> remains Omegon-native.</li>
-      <li><strong>Extensions:</strong> degrade to external tool references unless MCP, CLI, or HTTP interfaces are explicitly declared.</li>
+      <li><strong>Extensions:</strong> degrade to external tool references unless MCP, CLI, HTTP, or OCI interfaces are explicitly declared.</li>
+      <li><strong>Forge templates:</strong> are Nex-native Pkl payloads that degrade to reviewed forge blueprints for other agents.</li>
     </ul>
 
     <h2>Browse compatibility metadata</h2>
@@ -40,6 +41,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       <li><a href="/catalog">All packages</a></li>
       <li><a href="/api/index.json">Catalog API</a></li>
       <li><a href="/profiles">Profiles</a> — profile pages show export commands for generic markdown, AGENTS.md, CLAUDE.md, and Cursor rules.</li>
+      <li><a href="/forge-templates">Forge templates</a> — Nex-owned Pkl payloads distributed as OCI artifacts.</li>
       <li><a href="https://github.com/styrene-lab/omegon-armory/blob/main/docs/compatibility.md">Full source document</a></li>
     </ul>
   </article>
