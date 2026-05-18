@@ -40,6 +40,11 @@ interface PluginManifest {
   skill?: {
     guidance: string;
   };
+  secrets?: {
+    required?: string[];
+    optional?: string[];
+    env?: Record<string, string>;
+  };
   detect?: {
     file_patterns?: string[];
     directories?: string[];
@@ -185,6 +190,21 @@ describe('Plugin manifest schema validation', () => {
         assert.ok(manifest.plugin.description.length > 0, 'Description is empty');
         assert.ok(manifest.plugin.description.length < 200,
           `Description is ${manifest.plugin.description.length} chars — keep under 200`);
+      });
+
+      it('secret env declarations are names-only if present', () => {
+        const secrets = manifest.secrets;
+        if (!secrets) return;
+        for (const name of [...(secrets.required || []), ...(secrets.optional || [])]) {
+          assert.match(name, /^[A-Z_][A-Z0-9_]*$/,
+            `Secret name '${name}' should be an env-style name`);
+        }
+        for (const [envName, secretRef] of Object.entries(secrets.env || {})) {
+          assert.match(envName, /^[A-Z_][A-Z0-9_]*$/,
+            `Secret env alias '${envName}' should be an env-style name`);
+          assert.match(secretRef, /^(\{)?[A-Z_][A-Z0-9_]*(\})?$/,
+            `Secret env value for '${envName}' must be a secret name, not a literal value`);
+        }
       });
     });
   }
