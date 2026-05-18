@@ -145,6 +145,50 @@ The guidance file (typically `SKILL.md`) must have a `# Title` heading and at le
 
 ---
 
+### `[secrets]` — Optional, any type
+
+Secret declarations are names-only contracts. They tell Omegon which operator-managed secrets a plugin, skill, or tool may need, and which environment variables should be projected at runtime. Manifest authors must never put raw secret values in public Armory payloads.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `required` | string[] | | Omegon secret names that must resolve for the plugin's normal workflow |
+| `optional` | string[] | | Omegon secret names that unlock optional behavior |
+
+#### `[secrets.env]`
+
+`[secrets.env]` maps environment variable names expected by external CLIs or tool runners to Omegon secret names:
+
+```toml
+[secrets]
+required = ["VAULT_ROOT_TOKEN"]
+optional = ["GITHUB_TOKEN"]
+
+[secrets.env]
+VAULT_TOKEN = "VAULT_ROOT_TOKEN"
+GITHUB_TOKEN = "GITHUB_TOKEN"
+```
+
+This is the canonical way to express aliases such as "Vault CLI expects `VAULT_TOKEN`, while the durable operator secret is stored as `VAULT_ROOT_TOKEN`." Values may be plain secret names or balanced single-template references like `{VAULT_ROOT_TOKEN}`. One-sided braces such as `{VAULT_ROOT_TOKEN` or `VAULT_ROOT_TOKEN}` are invalid. They must not be literal tokens, passwords, URLs with embedded credentials, or command output. Names-only schema validation is necessary but not sufficient; public Armory payload linting remains the second gate for obvious secret-shaped values.
+
+#### `[tools.env]`
+
+Extension tools may scope env aliases to an individual tool:
+
+```toml
+[[tools]]
+name = "vault_status"
+description = "Check Vault status"
+runner = "bash"
+script = "tools/vault-status.sh"
+
+[tools.env]
+VAULT_TOKEN = "{VAULT_ROOT_TOKEN}"
+```
+
+Tool-level mappings override plugin-level mappings for the same env var. Omegon resolves the referenced secret through its secrets engine, registers the resolved value for redaction, and injects only the requested env vars into script, context, or container runners.
+
+---
+
 ### `[detect]` — Optional, any type
 
 File-signature-based auto-detection. When present, Omegon can suggest activating this plugin when matching files are found in a project.
@@ -216,3 +260,4 @@ omegon plugin update <id>
 8. `TONE.md` should be under 2000 characters
 9. `PERSONA.md` must include an anti-pattern section
 10. Tool names in `disable`/`enable` must be recognized by the Omegon tool registry
+11. Secret names and secret env aliases must be names only; raw secret values are forbidden in public payloads

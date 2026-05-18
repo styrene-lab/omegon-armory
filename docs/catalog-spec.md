@@ -107,6 +107,9 @@ name = "doc-standard"
 required = ["ANTHROPIC_API_KEY"]
 optional = ["GOOGLE_OAUTH_TOKEN"]
 
+[secrets.env]
+GOOGLE_APPLICATION_CREDENTIALS = "GOOGLE_APPLICATION_CREDENTIALS"
+
 [[triggers]]
 name = "weekly-status-report"
 schedule = "weekly"          # hourly | daily | weekdays | weekly
@@ -124,6 +127,21 @@ template = "..."
 | `infra` | Infrastructure / DevOps agents |
 | `ops` | Business operations agents |
 | `full` | General-purpose agents with full tooling |
+
+### Secrets
+
+Agent bundle `[secrets]` sections follow the same names-only contract as plugin manifests:
+
+```toml
+[secrets]
+required = ["ANTHROPIC_API_KEY"]
+optional = ["VAULT_ROOT_TOKEN"]
+
+[secrets.env]
+VAULT_TOKEN = "VAULT_ROOT_TOKEN"
+```
+
+Use `required` and `optional` for Omegon secret names, and `[secrets.env]` for environment variables that should be projected for profiled/headless agent runs. Values must be secret names or balanced single-template references such as `{VAULT_ROOT_TOKEN}`, never raw credential values. One-sided braces are invalid, and public payload linting remains the second gate for obvious secret-shaped values.
 
 ---
 
