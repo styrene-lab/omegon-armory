@@ -43,6 +43,10 @@ const VALID_PROFILE_THINKING = new Set(['low', 'medium', 'high', 'max']);
 const VALID_PROFILE_EXPORT_FORMATS = new Set(['generic-markdown', 'agents-md', 'claude-md', 'cursor-rules']);
 const VALID_PROFILE_DEPENDENCY_KINDS = new Set(['skill', 'persona', 'tone', 'extension', 'agent', 'profile']);
 const VALID_PROFILE_ACTIVATION = new Set(['always', 'auto', 'manual']);
+const VALID_FORGE_SCHEMA = 'dev.styrene.nex.forge-template.v1';
+const VALID_FORGE_EVALUATORS = new Set(['pkl']);
+const VALID_FORGE_EVALUATION_MODES = new Set(['inspect-only', 'plan-only', 'build-plan', 'execute-capable']);
+const VALID_FORGE_SAFETY_CLASSES = new Set(['documentation', 'plan-only', 'image-build', 'disk-write', 'cluster-init', 'remote-provision']);
 
 const ENV_NAME_RE = /^[A-Z_][A-Z0-9_]*$/;
 const SECRET_REF_RE = /^([A-Z_][A-Z0-9_]*|\{[A-Z_][A-Z0-9_]*\})$/;
@@ -530,6 +534,10 @@ describe('forge-template entries', () => {
   for (const entry of discoverForgeTemplates()) {
     it(`${entry.relativeDir} has safe Nex forge metadata`, () => {
       const meta = entry.manifest.forge_template || {};
+      assert.equal(meta.schema, VALID_FORGE_SCHEMA);
+      assert.ok(VALID_FORGE_EVALUATORS.has(meta.evaluator), `${entry.slug}: invalid evaluator`);
+      assert.ok(VALID_FORGE_EVALUATION_MODES.has(meta.evaluation_mode), `${entry.slug}: invalid evaluation_mode`);
+      assert.ok(VALID_FORGE_SAFETY_CLASSES.has(meta.safety_class), `${entry.slug}: invalid safety_class`);
       assert.equal(meta.id, entry.slug);
       assert.equal(meta.canonical_format, 'pkl');
       assert.equal(meta.visibility, 'public');
@@ -540,6 +548,39 @@ describe('forge-template entries', () => {
       assert.doesNotMatch(payload, /clusterInit|join[_-]?token|\/dev\/disk|\/dev\/sd[a-z]|\.local|\.lan|\.internal/i);
     });
   }
+
+  it('passes the Armory forge-template checker in local optional mode', () => {
+    const output = command('python3', ['scripts/check-forge-templates.py'], { timeout: 180_000 });
+    assert.match(output, /Forge-template checks passed|Static forge-template checks passed/);
+  });
+
+  it('fails strict Nex mode when no compatible forge check is available', () => {
+    const emptyBin = fs.mkdtempSync(path.join(os.tmpdir(), 'omegon-armory-empty-bin.'));
+    try {
+      const env = {
+        ...process.env,
+        PATH: emptyBin,
+        ARMORY_REQUIRE_NEX: '1',
+      };
+      if (process.env.PYTHONPATH) env.PYTHONPATH = process.env.PYTHONPATH;
+      const pythonBin = spawnSync('python3', ['-c', 'import sys; print(sys.executable)'], {
+        cwd: ARMORY_ROOT,
+        text: true,
+        encoding: 'utf8',
+      }).stdout.trim();
+      const result = spawnSync(pythonBin, ['scripts/check-forge-templates.py'], {
+        cwd: ARMORY_ROOT,
+        text: true,
+        encoding: 'utf8',
+        env,
+      });
+      const output = `${result.stdout || ''}${result.stderr || ''}`;
+      assert.notEqual(result.status, 0);
+      assert.match(output, /Nex CLI not found/);
+    } finally {
+      fs.rmSync(emptyBin, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('extension registry entries', () => {

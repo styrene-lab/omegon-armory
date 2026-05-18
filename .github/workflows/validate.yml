@@ -96,6 +96,9 @@ jobs:
           print("Detail file check complete")
           EOF
 
+      - name: Check forge templates
+        run: python3 scripts/check-forge-templates.py
+
       - name: Build OCI artifact index
         run: |
           python3 scripts/build-oci-artifacts.py --out dist/oci-validate

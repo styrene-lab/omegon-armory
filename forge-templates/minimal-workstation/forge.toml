@@ -1,4 +1,8 @@
 [forge_template]
+schema = "dev.styrene.nex.forge-template.v1"
+evaluator = "pkl"
+evaluation_mode = "plan-only"
+safety_class = "image-build"
 id = "minimal-workstation"
 name = "Minimal Workstation"
 version = "1.0.0"
