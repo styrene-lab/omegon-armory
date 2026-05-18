@@ -141,7 +141,7 @@ optional = ["VAULT_ROOT_TOKEN"]
 VAULT_TOKEN = "VAULT_ROOT_TOKEN"
 ```
 
-Use `required` and `optional` for Omegon secret names, and `[secrets.env]` for environment variables that should be projected for profiled/headless agent runs. Values must be secret names or single-template references such as `{VAULT_ROOT_TOKEN}`, never raw credential values.
+Use `required` and `optional` for Omegon secret names, and `[secrets.env]` for environment variables that should be projected for profiled/headless agent runs. Values must be secret names or balanced single-template references such as `{VAULT_ROOT_TOKEN}`, never raw credential values. One-sided braces are invalid, and public payload linting remains the second gate for obvious secret-shaped values.
 
 ---
 

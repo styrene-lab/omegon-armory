@@ -168,7 +168,7 @@ VAULT_TOKEN = "VAULT_ROOT_TOKEN"
 GITHUB_TOKEN = "GITHUB_TOKEN"
 ```
 
-This is the canonical way to express aliases such as "Vault CLI expects `VAULT_TOKEN`, while the durable operator secret is stored as `VAULT_ROOT_TOKEN`." Values may be plain secret names or single-template references like `{VAULT_ROOT_TOKEN}`. They must not be literal tokens, passwords, URLs with embedded credentials, or command output.
+This is the canonical way to express aliases such as "Vault CLI expects `VAULT_TOKEN`, while the durable operator secret is stored as `VAULT_ROOT_TOKEN`." Values may be plain secret names or balanced single-template references like `{VAULT_ROOT_TOKEN}`. One-sided braces such as `{VAULT_ROOT_TOKEN` or `VAULT_ROOT_TOKEN}` are invalid. They must not be literal tokens, passwords, URLs with embedded credentials, or command output. Names-only schema validation is necessary but not sufficient; public Armory payload linting remains the second gate for obvious secret-shaped values.
 
 #### `[tools.env]`
 

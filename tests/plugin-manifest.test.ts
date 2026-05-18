@@ -12,6 +12,17 @@ import { fileURLToPath } from 'node:url';
 
 // --- Types reflecting the plugin.toml schema ---
 
+interface ToolManifest {
+  name?: string;
+  env?: Record<string, string>;
+}
+
+interface SecretManifest {
+  required?: string[];
+  optional?: string[];
+  env?: Record<string, string>;
+}
+
 interface PluginManifest {
   plugin: {
     type: 'persona' | 'tone' | 'skill' | 'extension';
@@ -40,11 +51,8 @@ interface PluginManifest {
   skill?: {
     guidance: string;
   };
-  secrets?: {
-    required?: string[];
-    optional?: string[];
-    env?: Record<string, string>;
-  };
+  secrets?: SecretManifest;
+  tools?: ToolManifest[];
   detect?: {
     file_patterns?: string[];
     directories?: string[];
@@ -57,15 +65,42 @@ function parseToml(content: string): Record<string, any> {
   const result: Record<string, any> = {};
   let currentSection: string[] = [];
 
+  function parseSection(name: string): string[] {
+    return name.split('.');
+  }
+
+  function targetForSection(): Record<string, any> | undefined {
+    let obj: any = result;
+    for (const section of currentSection) {
+      obj = Array.isArray(obj[section]) ? obj[section].at(-1) : obj[section];
+      if (!obj) return undefined;
+    }
+    return obj;
+  }
+
   for (const line of content.split('\n')) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) continue;
 
-    // Section header
+    const arraySectionMatch = trimmed.match(/^\[\[(.+)\]\]$/);
+    if (arraySectionMatch) {
+      currentSection = parseSection(arraySectionMatch[1]);
+      let obj: any = result;
+      for (let index = 0; index < currentSection.length - 1; index += 1) {
+        const key = currentSection[index];
+        if (!obj[key]) obj[key] = {};
+        obj = obj[key];
+      }
+      const key = currentSection.at(-1)!;
+      if (!obj[key]) obj[key] = [];
+      obj[key].push({});
+      continue;
+    }
+
     const sectionMatch = trimmed.match(/^\[(.+)\]$/);
     if (sectionMatch) {
-      currentSection = sectionMatch[1].split('.');
-      let obj = result;
+      currentSection = parseSection(sectionMatch[1]);
+      let obj: any = result;
       for (const key of currentSection) {
         if (!obj[key]) obj[key] = {};
         obj = obj[key];
@@ -73,21 +108,18 @@ function parseToml(content: string): Record<string, any> {
       continue;
     }
 
-    // Key-value pair
     const kvMatch = trimmed.match(/^(\w+)\s*=\s*(.+)$/);
     if (kvMatch) {
       const [, key, rawValue] = kvMatch;
       let value: any = rawValue;
 
-      // String
       if (rawValue.startsWith('"') && rawValue.endsWith('"')) {
         value = rawValue.slice(1, -1);
-      }
-      // Boolean
-      else if (rawValue === 'true') value = true;
-      else if (rawValue === 'false') value = false;
-      // Array
-      else if (rawValue.startsWith('[')) {
+      } else if (rawValue === 'true') {
+        value = true;
+      } else if (rawValue === 'false') {
+        value = false;
+      } else if (rawValue.startsWith('[')) {
         value = rawValue
           .slice(1, -1)
           .split(',')
@@ -95,11 +127,8 @@ function parseToml(content: string): Record<string, any> {
           .filter(Boolean);
       }
 
-      let obj = result;
-      for (const section of currentSection) {
-        obj = obj[section];
-      }
-      obj[key] = value;
+      const obj = targetForSection();
+      if (obj) obj[key] = value;
     }
   }
 
@@ -136,7 +165,62 @@ function loadManifest(tomlPath: string): PluginManifest {
   return parseToml(content) as unknown as PluginManifest;
 }
 
+const ENV_NAME_RE = /^[A-Z_][A-Z0-9_]*$/;
+const SECRET_REF_RE = /^([A-Z_][A-Z0-9_]*|\{[A-Z_][A-Z0-9_]*\})$/;
+
+function assertNamesOnlySecrets(secrets: SecretManifest | undefined, label: string): void {
+  if (!secrets) return;
+  for (const name of [...(secrets.required || []), ...(secrets.optional || [])]) {
+    assert.match(name, ENV_NAME_RE, `${label}: secret name '${name}' should be an env-style name`);
+  }
+  for (const [envName, secretRef] of Object.entries(secrets.env || {})) {
+    assert.match(envName, ENV_NAME_RE, `${label}: secret env alias '${envName}' should be an env-style name`);
+    assert.match(
+      secretRef,
+      SECRET_REF_RE,
+      `${label}: secret env value for '${envName}' must be SECRET_NAME or {SECRET_NAME}, not a literal value`,
+    );
+  }
+}
+
+function assertToolEnvAliases(tools: ToolManifest[] | undefined, label: string): void {
+  for (const tool of tools || []) {
+    for (const [envName, secretRef] of Object.entries(tool.env || {})) {
+      assert.match(envName, ENV_NAME_RE, `${label}:${tool.name || '<unnamed>'}: tool env alias '${envName}' should be an env-style name`);
+      assert.match(
+        secretRef,
+        SECRET_REF_RE,
+        `${label}:${tool.name || '<unnamed>'}: tool env value for '${envName}' must be SECRET_NAME or {SECRET_NAME}, not a literal value`,
+      );
+    }
+  }
+}
+
 // --- Tests ---
+
+
+describe('Secret env contract helpers', () => {
+  it('accepts plain names and balanced single-template refs', () => {
+    assertNamesOnlySecrets(
+      {
+        required: ['VAULT_ROOT_TOKEN'],
+        optional: ['GITHUB_TOKEN'],
+        env: {
+          VAULT_TOKEN: 'VAULT_ROOT_TOKEN',
+          GITHUB_TOKEN: '{GITHUB_TOKEN}',
+        },
+      },
+      'fixture',
+    );
+  });
+
+  it('rejects malformed template refs and literal-looking values', () => {
+    assert.throws(() => assertNamesOnlySecrets({ env: { VAULT_TOKEN: '{VAULT_ROOT_TOKEN' } }, 'fixture'));
+    assert.throws(() => assertNamesOnlySecrets({ env: { VAULT_TOKEN: 'VAULT_ROOT_TOKEN}' } }, 'fixture'));
+    assert.throws(() => assertNamesOnlySecrets({ env: { VAULT_TOKEN: 'https://token@example.com' } }, 'fixture'));
+    assert.throws(() => assertNamesOnlySecrets({ env: { VAULT_TOKEN: 'abc123-secret-value' } }, 'fixture'));
+  });
+});
 
 describe('Plugin manifest discovery', () => {
   const plugins = findPlugins();
@@ -193,18 +277,8 @@ describe('Plugin manifest schema validation', () => {
       });
 
       it('secret env declarations are names-only if present', () => {
-        const secrets = manifest.secrets;
-        if (!secrets) return;
-        for (const name of [...(secrets.required || []), ...(secrets.optional || [])]) {
-          assert.match(name, /^[A-Z_][A-Z0-9_]*$/,
-            `Secret name '${name}' should be an env-style name`);
-        }
-        for (const [envName, secretRef] of Object.entries(secrets.env || {})) {
-          assert.match(envName, /^[A-Z_][A-Z0-9_]*$/,
-            `Secret env alias '${envName}' should be an env-style name`);
-          assert.match(secretRef, /^(\{)?[A-Z_][A-Z0-9_]*(\})?$/,
-            `Secret env value for '${envName}' must be a secret name, not a literal value`);
-        }
+        assertNamesOnlySecrets(manifest.secrets, manifest.plugin.id);
+        assertToolEnvAliases(manifest.tools, manifest.plugin.id);
       });
     });
   }
