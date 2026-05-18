@@ -1,0 +1,13 @@
+[forge_template]
+id = "minimal-workstation"
+name = "Minimal Workstation"
+version = "1.0.0"
+description = "Safe public Nex forge template for building a non-destructive workstation image plan."
+category = "desktop"
+license = "MIT"
+canonical_format = "pkl"
+nex_min_version = "0.1.0"
+visibility = "public"
+profile_class = "desktop"
+destructive_capabilities = ["image-build"]
+network_requirements = ["package-download"]

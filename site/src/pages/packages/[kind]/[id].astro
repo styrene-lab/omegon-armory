@@ -42,6 +42,8 @@ const hasDistinctHomepage =
         {item.official && <div><dt>Status</dt><dd>Official</dd></div>}
         {item.license && <div><dt>License</dt><dd>{item.license}</dd></div>}
         {item.minOmegon && <div><dt>Min Omegon</dt><dd>{item.minOmegon}</dd></div>}
+        {item.minNex && <div><dt>Min Nex</dt><dd>{item.minNex}</dd></div>}
+        {item.canonicalFormat && <div><dt>Canonical Format</dt><dd>{item.canonicalFormat}</dd></div>}
       </dl>
     </header>
 
@@ -171,6 +173,8 @@ const hasDistinctHomepage =
           {item.manifestId && <div><dt>Manifest ID</dt><dd><code>{item.manifestId}</code></dd></div>}
           {item.ociRef && <div><dt>OCI Ref</dt><dd><code>{item.ociRef}</code></dd></div>}
           {item.artifactType && <div><dt>Artifact Type</dt><dd><code>{item.artifactType}</code></dd></div>}
+          {item.destructiveCapabilities && item.destructiveCapabilities.length > 0 && <div><dt>Capabilities</dt><dd><code>{item.destructiveCapabilities.join(", ")}</code></dd></div>}
+          {item.networkRequirements && item.networkRequirements.length > 0 && <div><dt>Network</dt><dd><code>{item.networkRequirements.join(", ")}</code></dd></div>}
           {item.payloadDigest && <div><dt>Payload Digest</dt><dd><code>{item.payloadDigest}</code></dd></div>}
         </dl>
       </aside>

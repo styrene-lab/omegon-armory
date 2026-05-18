@@ -1,6 +1,6 @@
 export type ArmoryDistribution = "oci" | "registry" | "external";
 
-export type ArmoryKind = "extension" | "skill" | "persona" | "tone" | "agent" | "profile";
+export type ArmoryKind = "extension" | "skill" | "persona" | "tone" | "agent" | "profile" | "forge-template";
 
 export type ArmoryCompatibilityMode = {
   runtime: string;
@@ -54,6 +54,10 @@ export type ArmoryItem = {
   manifestId?: string;
   license?: string;
   minOmegon?: string;
+  minNex?: string;
+  canonicalFormat?: string;
+  destructiveCapabilities?: string[];
+  networkRequirements?: string[];
   publisher: string;
   official: boolean;
   capabilities: string[];

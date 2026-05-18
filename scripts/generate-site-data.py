@@ -228,6 +228,64 @@ def profile_catalog(repo: Path, oci: dict[tuple[str, str], dict], extension_regi
     return items
 
 
+
+def forge_template_catalog(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
+    root = repo / "forge-templates"
+    if not root.exists():
+        return []
+    items = []
+    for item_dir in sorted(path for path in root.iterdir() if path.is_dir()):
+        metadata_path = item_dir / "forge.toml"
+        if not metadata_path.exists():
+            continue
+        manifest = load_toml(metadata_path)
+        meta = manifest["forge_template"]
+        slug = item_dir.name
+        source_path = f"forge-templates/{slug}"
+        oci_item = oci.get(("forge-template", slug), {})
+        oci_ref = oci_item.get("ref")
+        items.append(
+            {
+                "kind": "forge-template",
+                "id": slug,
+                "name": meta["name"],
+                "version": meta["version"],
+                "description": meta["description"],
+                "category": meta.get("category", "forge-template"),
+                "sourcePath": source_path,
+                "sourceUrl": source_url(source_path),
+                "repositoryUrl": REPO_URL,
+                "homepageUrl": source_url(source_path),
+                "armoryUrl": source_url(source_path),
+                "installCommand": f"oras pull {oci_ref}" if oci_ref else "Build OCI artifacts before pulling",
+                "installNote": "Nex forge-template payload. Pull via OCI and evaluate with Nex; Armory does not execute forge semantics.",
+                "verifyCommand": f"cosign verify {oci_ref}" if oci_ref else "",
+                "ociRef": oci_ref or "",
+                "artifactType": oci_item.get("artifact_type", ""),
+                "payloadDigest": oci_item.get("payload_digest", ""),
+                "manifestId": meta["id"],
+                "license": meta.get("license", "MIT"),
+                "minOmegon": "",
+                "minNex": meta.get("nex_min_version", ""),
+                "publisher": "Styrene Lab",
+                "official": True,
+                "capabilities": [
+                    "forge-template",
+                    f"canonical:{meta.get('canonical_format', 'pkl')}",
+                    *[f"capability:{value}" for value in meta.get("destructive_capabilities", [])],
+                    *[f"network:{value}" for value in meta.get("network_requirements", [])],
+                ],
+                "keywords": keywords("forge-template", slug, meta.get("category", ""), meta["description"]),
+                "files": iter_files(item_dir),
+                "dependencies": [],
+                "distribution": "oci" if oci_ref else "registry",
+                "canonicalFormat": meta.get("canonical_format", "pkl"),
+                "destructiveCapabilities": meta.get("destructive_capabilities", []),
+                "networkRequirements": meta.get("network_requirements", []),
+            }
+        )
+    return items
+
 def catalog_agents(repo: Path, oci: dict[tuple[str, str], dict]) -> list[dict]:
     registry_path = repo / "catalog-registry.toml"
     extension_registry_path = repo / "registry.toml"
@@ -333,7 +391,20 @@ def extensions(repo: Path) -> list[dict]:
 
 
 def plugin_capabilities(kind: str, manifest: dict) -> list[str]:
-    if kind == "skill":
+    if kind == "forge-template":
+        compatibility["tier"] = 2
+        compatibility["native"][0]["runtime"] = "nex"
+        compatibility["degraded"].append(
+            {
+                "runtime": "generic-agent",
+                "mode": "forge-blueprint",
+                "entrypoints": [entry for entry in ["forge.toml", "forge.pkl", "README.md"] if entry in files],
+            }
+        )
+        compatibility["notes"].append(
+            "Forge templates are Nex-owned payloads. Armory distributes and indexes them but does not evaluate forge semantics."
+        )
+    elif kind == "skill":
         return ["guidance"]
     if kind == "tone":
         values = ["tone"]
@@ -417,6 +488,7 @@ def compatibility_for_item(item: dict) -> dict:
     files = set(item.get("files", []))
 
     native_modes = {
+        "forge-template": "nex-forge-template",
         "skill": "plugin",
         "persona": "plugin",
         "tone": "plugin",
@@ -437,7 +509,20 @@ def compatibility_for_item(item: dict) -> dict:
         "notes": [],
     }
 
-    if kind == "skill":
+    if kind == "forge-template":
+        compatibility["tier"] = 2
+        compatibility["native"][0]["runtime"] = "nex"
+        compatibility["degraded"].append(
+            {
+                "runtime": "generic-agent",
+                "mode": "forge-blueprint",
+                "entrypoints": [entry for entry in ["forge.toml", "forge.pkl", "README.md"] if entry in files],
+            }
+        )
+        compatibility["notes"].append(
+            "Forge templates are Nex-owned payloads. Armory distributes and indexes them but does not evaluate forge semantics."
+        )
+    elif kind == "skill":
         compatibility["tier"] = 1
         compatibility["degraded"].append(
             {
@@ -541,6 +626,7 @@ def main() -> None:
     items = extensions(repo)
     items.extend(plugin_catalog(repo, oci))
     items.extend(profile_catalog(repo, oci, extension_registry))
+    items.extend(forge_template_catalog(repo, oci))
     items.extend(catalog_agents(repo, oci))
     items.sort(key=lambda item: (item["kind"], item["id"]))
     for item in items:

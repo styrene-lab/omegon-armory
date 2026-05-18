@@ -17,6 +17,7 @@ const stats = {
   tones: items.filter((item) => item.kind === "tone").length,
   agents: items.filter((item) => item.kind === "agent").length,
   profiles: items.filter((item) => item.kind === "profile").length,
+  forgeTemplates: items.filter((item) => item.kind === "forge-template").length,
   oci: items.filter((item) => item.distribution === "oci").length,
   registry: items.filter((item) => item.distribution === "registry").length,
   external: items.filter((item) => item.distribution === "external").length,
@@ -30,6 +31,7 @@ const surfaces = [
   { label: "Profiles", href: "/profiles", count: stats.profiles, note: "Dependency manifests" },
   { label: "Agents", href: "/agents", count: stats.agents, note: "Catalog blueprints" },
   { label: "Extensions", href: "/extensions", count: stats.extensions, note: "Native tool packages" },
+  { label: "Forge Templates", href: "/forge-templates", count: stats.forgeTemplates, note: "Nex image blueprints" },
 ];
 ---
 

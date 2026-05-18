@@ -21,6 +21,7 @@ MEDIA_TYPES = {
     "tone": "application/vnd.styrene.omegon.tone.v1+tar",
     "agent": "application/vnd.styrene.omegon.agent.v1+tar",
     "profile": "application/vnd.styrene.omegon.profile.v1+tar",
+    "forge-template": "application/vnd.styrene.nex.forge-template.v1+tar",
 }
 
 
@@ -152,6 +153,61 @@ def profile_items(repo: Path, registry: str, out_dir: Path) -> list[dict]:
     return items
 
 
+
+def forge_template_items(repo: Path, registry: str, out_dir: Path) -> list[dict]:
+    root = repo / "forge-templates"
+    if not root.is_dir():
+        return []
+
+    items: list[dict] = []
+    for item_dir in sorted(path for path in root.iterdir() if path.is_dir()):
+        metadata_path = item_dir / "forge.toml"
+        forge_path = item_dir / "forge.pkl"
+        readme_path = item_dir / "README.md"
+        if not metadata_path.exists():
+            continue
+        if not forge_path.exists() or not readme_path.exists():
+            raise SystemExit(f"{item_dir}: forge-template packages require forge.pkl and README.md")
+        manifest = load_toml(metadata_path)["forge_template"]
+        slug = item_dir.name
+        if manifest.get("id") != slug:
+            raise SystemExit(f"{metadata_path}: forge_template.id must match directory name")
+        if manifest.get("canonical_format") != "pkl":
+            raise SystemExit(f"{metadata_path}: canonical_format must be 'pkl'")
+        version = manifest["version"]
+        rel_path = f"forge-templates/{slug}"
+        payload = out_dir / "payloads" / "forge-templates" / f"{slug}-{version}.tar.gz"
+        files = iter_files(item_dir)
+        write_tarball(item_dir, files, payload)
+        payload_digest = sha256_file(payload)
+        ref = f"{registry}/forge-templates/{slug}:{version}"
+
+        items.append(
+            {
+                "kind": "forge-template",
+                "id": slug,
+                "manifest_id": manifest["id"],
+                "name": manifest["name"],
+                "version": version,
+                "description": manifest["description"],
+                "category": manifest.get("category", "forge-template"),
+                "ref": ref,
+                "source_path": rel_path,
+                "payload": str(payload.relative_to(out_dir)),
+                "payload_digest": payload_digest,
+                "artifact_type": MEDIA_TYPES["forge-template"],
+                "annotations": annotations("forge-template", slug, manifest),
+                "canonical_format": manifest.get("canonical_format", "pkl"),
+                "nex_min_version": manifest.get("nex_min_version", ""),
+                "destructive_capabilities": manifest.get("destructive_capabilities", []),
+                "network_requirements": manifest.get("network_requirements", []),
+                "visibility": manifest.get("visibility", "public"),
+                "profile_class": manifest.get("profile_class", ""),
+            }
+        )
+
+    return items
+
 def catalog_items(repo: Path, registry: str, out_dir: Path) -> list[dict]:
     registry_path = repo / "catalog-registry.toml"
     if not registry_path.exists():
@@ -273,6 +329,7 @@ def main() -> None:
 
     items = plugin_items(repo, args.registry, out_dir)
     items.extend(profile_items(repo, args.registry, out_dir))
+    items.extend(forge_template_items(repo, args.registry, out_dir))
     items.extend(catalog_items(repo, args.registry, out_dir))
     items.sort(key=lambda item: (item["kind"], item["id"]))
     write_index(out_dir, args.registry, items)

@@ -224,6 +224,22 @@ function discoverCatalogEntries() {
   return parseRegistry('catalog-registry.toml').sort((a, b) => a.id.localeCompare(b.id));
 }
 
+function discoverForgeTemplates() {
+  const root = path.join(ARMORY_ROOT, 'forge-templates');
+  if (!fs.existsSync(root)) return [];
+  return fs.readdirSync(root, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory())
+    .map((dirent) => {
+      const relativeDir = `forge-templates/${dirent.name}`;
+      return {
+        slug: dirent.name,
+        relativeDir,
+        manifest: parseToml(readText(`${relativeDir}/forge.toml`)),
+      };
+    })
+    .sort((a, b) => a.slug.localeCompare(b.slug));
+}
+
 function discoverExtensions() {
   return parseRegistry('registry.toml').sort((a, b) => a.id.localeCompare(b.id));
 }
@@ -307,6 +323,7 @@ describe('secret env contract helpers', () => {
 describe('armory registry inventory', () => {
   it('has the expected public entry counts before publish', () => {
     assert.equal(plugins.length, 14, 'unexpected plugin/persona/tone/skill count');
+    assert.equal(discoverForgeTemplates().length, 1, 'unexpected forge-template count');
     assert.equal(catalogEntries.length, 6, 'unexpected agent catalog count');
     assert.equal(profiles.length, 6, 'unexpected profile count');
     assert.equal(extensions.length, 6, 'unexpected extension registry count');
@@ -508,6 +525,23 @@ describe('catalog agent entries', () => {
   }
 });
 
+
+describe('forge-template entries', () => {
+  for (const entry of discoverForgeTemplates()) {
+    it(`${entry.relativeDir} has safe Nex forge metadata`, () => {
+      const meta = entry.manifest.forge_template || {};
+      assert.equal(meta.id, entry.slug);
+      assert.equal(meta.canonical_format, 'pkl');
+      assert.equal(meta.visibility, 'public');
+      assert.match(meta.version, /^\d+\.\d+\.\d+$/);
+      assert.ok(exists(`${entry.relativeDir}/forge.pkl`), `${entry.slug}: missing forge.pkl`);
+      assert.ok(exists(`${entry.relativeDir}/README.md`), `${entry.slug}: missing README.md`);
+      const payload = readText(`${entry.relativeDir}/forge.pkl`);
+      assert.doesNotMatch(payload, /clusterInit|join[_-]?token|\/dev\/disk|\/dev\/sd[a-z]|\.local|\.lan|\.internal/i);
+    });
+  }
+});
+
 describe('extension registry entries', () => {
   for (const extension of extensions) {
     it(`${extension.id} has publish metadata and staged enablement`, () => {
@@ -645,7 +679,7 @@ describe('generated catalog compatibility metadata', () => {
 
       const sitePayload = JSON.parse(fs.readFileSync(siteJson, 'utf8'));
       const apiPayload = JSON.parse(fs.readFileSync(apiJson, 'utf8'));
-      assert.equal(sitePayload.items.length, 29);
+      assert.equal(sitePayload.items.length, 30);
       assert.deepEqual(apiPayload.items, sitePayload.items);
 
       for (const item of sitePayload.items) {
@@ -655,9 +689,10 @@ describe('generated catalog compatibility metadata', () => {
         assert.ok(Array.isArray(item.compatibility.native), `${item.kind}/${item.id}: native must be an array`);
         assert.ok(Array.isArray(item.compatibility.degraded), `${item.kind}/${item.id}: degraded must be an array`);
         assert.ok(Array.isArray(item.compatibility.notes), `${item.kind}/${item.id}: notes must be an array`);
+        const expectedNativeRuntime = item.kind === 'forge-template' ? 'nex' : 'omegon';
         assert.ok(
-          item.compatibility.native.some((mode) => mode.runtime === 'omegon'),
-          `${item.kind}/${item.id}: native compatibility must include omegon`,
+          item.compatibility.native.some((mode) => mode.runtime === expectedNativeRuntime),
+          `${item.kind}/${item.id}: native compatibility must include ${expectedNativeRuntime}`,
         );
         assert.ok(item.compatibility.degraded.length > 0, `${item.kind}/${item.id}: missing degraded mode`);
 
@@ -700,7 +735,7 @@ describe('generated catalog compatibility metadata', () => {
             portableInterfaces.length > 0 ? 3 : 0,
             `${item.id}: extension tier should reflect portable callable interfaces`,
           );
-        } else if (item.kind === 'profile' || item.kind === 'agent') {
+        } else if (item.kind === 'profile' || item.kind === 'agent' || item.kind === 'forge-template') {
           assert.equal(item.compatibility.tier, 2, `${item.kind}/${item.id}: expected manifest-compatible tier`);
         } else {
           assert.equal(item.compatibility.tier, 1, `${item.kind}/${item.id}: expected prompt-compatible tier`);

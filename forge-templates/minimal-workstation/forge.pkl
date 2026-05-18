@@ -1,0 +1,15 @@
+// Minimal public Nex forge template.
+// Canonical format: Pkl. Armory distributes this file; Nex owns evaluation.
+
+name = "minimal-workstation"
+description = "Build a non-destructive workstation image plan for operator review."
+profileClass = "desktop"
+visibility = "public"
+
+// This public example intentionally avoids fixed disk targets, private IPs,
+// join tokens, cluster initialization, and site-local hostnames.
+plan {
+  mode = "image-build"
+  target = "operator-selected"
+  requiresNetwork = true
+}
