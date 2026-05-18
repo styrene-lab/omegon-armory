@@ -96,6 +96,18 @@ jobs:
           print("Detail file check complete")
           EOF
 
+      - name: Install Pkl evaluator for forge validation
+        run: |
+          set -euo pipefail
+          PKL_VERSION="0.29.1"
+          mkdir -p "$RUNNER_TEMP/pkl-bin"
+          curl -fsSL \
+            "https://github.com/apple/pkl/releases/download/${PKL_VERSION}/pkl-linux-amd64" \
+            -o "$RUNNER_TEMP/pkl-bin/pkl"
+          chmod +x "$RUNNER_TEMP/pkl-bin/pkl"
+          echo "$RUNNER_TEMP/pkl-bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/pkl-bin/pkl" --version
+
       - name: Install pinned Nex for forge validation
         run: |
           cargo install \
