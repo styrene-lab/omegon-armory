@@ -17,19 +17,22 @@ Publish the first public Armory release with:
 Expected generated catalog:
 
 ```text
-22 site/API entries
-20 OCI artifacts
+30 site/API entries
+27 OCI artifacts
 2 registry-install extensions
+1 external integration
 ```
 
 Expected kinds:
 
 ```text
-skill:     10
-agent:      6
-extension:  2
-persona:    2
-tone:       2
+skill:           10
+agent:            6
+profile:          6
+extension:        3
+persona:          2
+tone:             2
+forge-template:   1
 ```
 
 Enabled extension gate:
@@ -37,6 +40,12 @@ Enabled extension gate:
 ```text
 flynt
 shuttle
+```
+
+External integration:
+
+```text
+lookout
 ```
 
 Staged but disabled candidates:
@@ -167,7 +176,7 @@ curl -fsSL https://armory.styrene.io/api/index.json | jq '.items | length'
 Expected API count:
 
 ```text
-22
+30
 ```
 
 ### 7. Production Install Smoke

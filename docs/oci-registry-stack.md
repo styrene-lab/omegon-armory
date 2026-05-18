@@ -37,6 +37,7 @@ ghcr.io/styrene-lab/omegon-armory/personas/tutor:1.0.0
 ghcr.io/styrene-lab/omegon-armory/tones/concise:1.0.0
 ghcr.io/styrene-lab/omegon-armory/catalog/styrene.coding-agent:1.0.0
 ghcr.io/styrene-lab/omegon-armory/profiles/alpharius:1.0.0
+ghcr.io/styrene-lab/omegon-armory/forge-templates/minimal-workstation:1.0.0
 ```
 
 Self-hosted mirrors should preserve the path layout:
@@ -90,7 +91,17 @@ README.md
 LOCK.json
 ```
 
+Forge template:
+
+```text
+forge.toml
+forge.pkl
+README.md
+```
+
 Profiles are meta-packages: they reference other Armory artifacts through dependency metadata instead of copying dependency payloads. See [Profile Artifacts](profile-artifacts.md).
+
+Forge templates are Pkl-canonical Nex payloads wrapped as Armory OCI artifacts. Armory packages and indexes them; Nex owns evaluation. See [Nex Forge Templates in Armory](nex-forge-templates.md).
 
 Extension artifacts may contain either a native extension archive or metadata that points to the existing extension release artifact. The first implementation should prefer reusing extension release archives rather than repackaging binaries in this repo.
 
@@ -99,7 +110,7 @@ Extension artifacts may contain either a native extension archive or metadata th
 Every artifact should include enough annotations for basic registry inspection:
 
 ```text
-io.styrene.omegon.kind=skill|persona|tone|extension|agent|profile|index
+io.styrene.omegon.kind=skill|persona|tone|extension|agent|profile|forge-template|index
 io.styrene.omegon.id=security
 io.styrene.omegon.name=Security Review
 io.styrene.omegon.description=Security checklist for code review
@@ -241,7 +252,7 @@ The largest avoidable cost is uncontrolled anonymous scraping. Use Cloudflare ca
 
 ### Phase 2: Full Armory Publish
 
-- Package all skills, personas, tones, catalog agents, and profiles.
+- Package all skills, personas, tones, catalog agents, profiles, and forge templates.
 - Add profile dependency metadata to the generated index.
 - Add extension entries that point to release artifacts or repackaged archives.
 - Publish multi-item index.

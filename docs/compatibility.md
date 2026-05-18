@@ -37,7 +37,8 @@ Every public Armory package should support tier 0. Most text packages should sup
 | `tone` | Loaded as response style modifier. | Writing-style instruction. | High | High |
 | `profile` | Installs/activates curated dependency stack. | Dependency manifest and recommended agent config bundle. | Medium-high | High |
 | `agent` | Catalog-installable Omegon agent bundle. | Agent blueprint: prompt, config, memory seed, tool requirements. | Medium | High |
-| `extension` | Native extension install and tool exposure. | External tool reference; MCP/CLI/HTTP bridge where declared. | Medium-low | High |
+| `extension` | Native extension install and tool exposure. | External tool reference; MCP/CLI/HTTP/OCI bridge where declared. | Medium-low | High |
+| `forge-template` | Nex evaluates canonical `forge.pkl` into forge plans/runs. | Manifest-compatible forge blueprint; non-Nex consumers can inspect metadata only. | Medium | High |
 | `index` | Searchable registry of Armory artifacts. | Public package index for external resolvers. | High | High |
 
 ## Degradation Ladder
@@ -149,6 +150,23 @@ Portable entrypoints:
 plugin.toml
 TONE.md or tone guidance file
 ```
+
+### Forge Templates
+
+Forge templates are Nex-owned Pkl payloads distributed by Armory. They are not Omegon profiles and must not be interpreted as agent environment configuration.
+
+Native behavior:
+
+```text
+oras pull ghcr.io/styrene-lab/omegon-armory/forge-templates/<slug>:<version>
+nex evaluates forge.pkl
+```
+
+Degraded behavior:
+
+- inspect `forge.toml`, `forge.pkl`, and `README.md`;
+- use metadata such as `canonicalFormat`, `minNex`, `destructiveCapabilities`, and `networkRequirements`;
+- do not execute or flash anything from Armory. Nex owns evaluation and destructive-operation controls.
 
 ### Profiles
 

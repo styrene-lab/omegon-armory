@@ -9,7 +9,7 @@ This document is the operating runbook for publishing and maintaining the Omegon
 | Human catalog | `https://armory.styrene.io` | Cloudflare Pages | Browse packages, install commands, provenance, self-host docs |
 | Static catalog API | `https://armory.styrene.io/api/index.json` | Cloudflare Pages | Machine-readable package metadata generated from manifests |
 | Source of truth | `https://github.com/styrene-lab/omegon-armory` | GitHub | Review, pull requests, manifests, tests |
-| OCI distribution | `ghcr.io/styrene-lab/omegon-armory/*` | GHCR | Signed OCI artifacts for skills, personas, tones, and catalog agents |
+| OCI distribution | `ghcr.io/styrene-lab/omegon-armory/*` | GHCR | Signed OCI artifacts for skills, personas, tones, profiles, catalog agents, and Nex forge templates |
 | Self-host mirror | zot + Cloudflare R2 | Operator | Optional registry mirror preserving the same OCI path layout |
 
 ## Source of Truth
@@ -23,6 +23,8 @@ Humans edit repository manifests and package source files:
 - `skills/*/plugin.toml` and `SKILL.md`
 - `personas/*/plugin.toml` and `PERSONA.md`
 - `tones/*/plugin.toml` and `TONE.md`
+- `profiles/*/profile.toml` and `README.md`
+- `forge-templates/*/forge.toml`, `forge.pkl`, and `README.md`
 
 Generated outputs are build products:
 
@@ -36,6 +38,7 @@ The site and API must remain derived from manifests. Do not hand-edit generated 
 
 See also:
 
+- [Nex Forge Templates](nex-forge-templates.md) — Pkl-canonical forge template packages distributed through Armory.
 - [Compatibility Model](compatibility.md) — native Omegon semantics, degraded use in other agent hosts, and extension interface strategy.
 - [Public Payload Security](public-payload-security.md) — lint policy, publication risks, and private-topology controls.
 - [Public Launch Checklist](public-launch-checklist.md) — release gates and launch smoke tests.
@@ -47,7 +50,7 @@ See also:
 
 Armory has two distribution classes:
 
-1. **OCI artifacts** — skills, personas, tones, profiles, and catalog agents. These are packaged by `scripts/build-oci-artifacts.py`, published with ORAS, and signed with cosign.
+1. **OCI artifacts** — skills, personas, tones, profiles, Nex forge templates, and catalog agents. These are packaged by `scripts/build-oci-artifacts.py`, published with ORAS, and signed with cosign.
 2. **Registry installs** — extensions. These resolve by name through `registry.toml` and install from upstream repository/release metadata.
 
 The public site exposes this distinction through each item's `distribution` field and badges.
@@ -131,7 +134,7 @@ Enabled extensions must include:
 
 ## Adding an OCI-backed Package
 
-For skills, personas, tones, profiles, or catalog agents:
+For skills, personas, tones, profiles, forge templates, or catalog agents:
 
 1. Add the package source directory and manifest.
 2. Add or update the relevant registry file if needed.
@@ -164,4 +167,5 @@ registry.example.com/omegon-armory/index:latest
 registry.example.com/omegon-armory/skills/security:1.0.0
 registry.example.com/omegon-armory/catalog/styrene.coding-agent:1.0.0
 registry.example.com/omegon-armory/profiles/alpharius:1.0.0
+registry.example.com/omegon-armory/forge-templates/minimal-workstation:1.0.0
 ```
