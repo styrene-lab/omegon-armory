@@ -222,3 +222,20 @@ Not required for first public launch:
 - native Omegon OCI package installer
 
 These are documented roadmap items, not launch blockers.
+
+
+## Site Release Tags
+
+Production promotion tags are derived from the site package version and the promoted commit:
+
+```text
+v<site-package-version>+site.<short-sha>
+```
+
+Example:
+
+```text
+v0.1.5+site.4b3ff96
+```
+
+The package version is the release series, not a mandatory bump for every catalog-only change. This avoids blocking production promotion when generated catalog data changes without a hand-written site version bump. The tag remains immutable and unique per promoted commit.
