@@ -18,6 +18,7 @@ patterns = [
   "sk-abc123",                # security skill placeholder
   "process\\.env\\.[A-Z0-9_]+",
   "VERSION_ID",
+  "no reusable first-server `clusterInit` overlay",
 ]
 
 [deny]

@@ -30,6 +30,8 @@ HOSTLIKE_RE = re.compile(r"(?i)\b[a-z0-9][a-z0-9-]*(?:\.[a-z0-9][a-z0-9-]*)+\b")
 ASSIGNMENT_RE = re.compile(r"(?i)\b([a-z0-9_-]*(?:key|token|secret|password|passwd)[a-z0-9_-]*)\b\s*[=:]\s*[\"']?([^\"'\s#,}]+)")
 BEARER_RE = re.compile(r"(?i)\b(?:bearer|token)\s+[A-Za-z0-9._~+/=-]{24,}\b")
 HIGH_ENTROPY_TOKEN_RE = re.compile(r"\b[A-Za-z0-9+/=_-]{24,}\b")
+RAW_DISK_RE = re.compile(r"(?:/dev/(?:sd[a-z]|vd[a-z]|nvme\d+n\d+)|/dev/disk/)")
+CLUSTER_INIT_RE = re.compile(r"(?i)\b(?:clusterInit|cluster_init|first[-_]?server|join[-_]?token)\b")
 
 
 @dataclass(frozen=True)
@@ -94,14 +96,14 @@ def iter_catalog_files(repo: Path) -> set[Path]:
 
 def iter_public_payload_files(repo: Path, policy: Policy) -> list[Path]:
     files: set[Path] = set()
-    for root_name in ["skills", "personas", "tones", "profiles"]:
+    for root_name in ["skills", "personas", "tones", "profiles", "forge-templates"]:
         root = repo / root_name
         if root.exists():
             files.update(path for path in root.rglob("*") if path.is_file())
     files.update(iter_catalog_files(repo))
     files.update(path for path in (repo / "extensions").glob("*.toml") if path.is_file())
     files.update([repo / "registry.toml", repo / "catalog-registry.toml"])
-    return sorted(path for path in files if path.exists() and path.suffix in policy.text_suffixes)
+    return sorted(path for path in files if path.suffix in policy.text_suffixes)
 
 
 def allowlisted(policy: Policy, line: str) -> bool:
@@ -173,6 +175,8 @@ def scan_file(repo: Path, policy: Policy, path: Path) -> list[Finding]:
             ("private-hostname", private_hostname(policy, line)),
             ("private-ip", private_ip(line)),
             ("private-topology-name", bool(policy.topology_re and policy.topology_re.search(line))),
+            ("raw-disk-target", bool(RAW_DISK_RE.search(line))),
+            ("cluster-init", bool(CLUSTER_INIT_RE.search(line))),
         ]
         for rule, matched in checks:
             if matched:
@@ -197,6 +201,9 @@ def main() -> int:
     policy = load_policy(repo, args.policy)
     findings: list[Finding] = []
     for path in iter_public_payload_files(repo, policy):
+        if not path.exists():
+            findings.append(Finding(path=path.relative_to(repo), line=0, rule="missing-public-payload", text="referenced public payload file does not exist"))
+            continue
         findings.extend(scan_file(repo, policy, path))
 
     if findings:

@@ -391,20 +391,7 @@ def extensions(repo: Path) -> list[dict]:
 
 
 def plugin_capabilities(kind: str, manifest: dict) -> list[str]:
-    if kind == "forge-template":
-        compatibility["tier"] = 2
-        compatibility["native"][0]["runtime"] = "nex"
-        compatibility["degraded"].append(
-            {
-                "runtime": "generic-agent",
-                "mode": "forge-blueprint",
-                "entrypoints": [entry for entry in ["forge.toml", "forge.pkl", "README.md"] if entry in files],
-            }
-        )
-        compatibility["notes"].append(
-            "Forge templates are Nex-owned payloads. Armory distributes and indexes them but does not evaluate forge semantics."
-        )
-    elif kind == "skill":
+    if kind == "skill":
         return ["guidance"]
     if kind == "tone":
         values = ["tone"]
