@@ -52,6 +52,7 @@ const profileExportSetup = item.kind === "profile"
       <dl class="metadata-panel">
         <div><dt>Version</dt><dd>{item.version}</dd></div>
         <div><dt>Kind</dt><dd>{item.kind}</dd></div>
+        <div><dt>Package Ref</dt><dd><code>{item.packageRef}</code></dd></div>
         <div><dt>Distribution</dt><dd>{item.distribution === "oci" ? "OCI artifact" : item.distribution === "external" ? "External integration" : "Extension registry"}</dd></div>
         <div><dt>Publisher</dt><dd>{item.publisher}</dd></div>
         {item.official && <div><dt>Status</dt><dd>Official</dd></div>}

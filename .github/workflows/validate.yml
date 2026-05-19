@@ -134,6 +134,13 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
 
+      - name: Validate public API schema
+        run: |
+          python3 scripts/build-oci-artifacts.py --out site/.cache/oci
+          python3 scripts/generate-site-data.py             --oci site/.cache/oci             --out site/src/data/armory.json             --api site/public/api/index.json
+          cp schemas/armory-index.schema.json site/public/api/schema.json
+          python3 scripts/validate-api-schema.py site/public/api/index.json schemas/armory-index.schema.json
+
       - name: Build public site
         working-directory: site
         run: |

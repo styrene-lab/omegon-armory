@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://armory.styrene.io/api/schema.json",
+  "title": "Omegon Armory Catalog Index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["generatedAt", "registry", "items"],
+  "properties": {
+    "generatedAt": { "type": "string" },
+    "registry": { "type": "string" },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/item" }
+    }
+  },
+  "$defs": {
+    "itemKind": {
+      "enum": ["skill", "persona", "tone", "profile", "agent", "extension", "forge-template"]
+    },
+    "distribution": {
+      "enum": ["oci", "registry", "external"]
+    },
+    "dependencyKind": {
+      "enum": ["skill", "persona", "tone", "profile", "agent", "extension", "forge-template"]
+    },
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "compatibilityMode": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["runtime", "mode"],
+      "properties": {
+        "runtime": { "type": "string" },
+        "mode": { "type": "string" },
+        "installCommand": { "type": "string" },
+        "entrypoints": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "native", "degraded", "notes"],
+      "properties": {
+        "tier": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "native": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/compatibilityMode" }
+        },
+        "degraded": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/compatibilityMode" }
+        },
+        "notes": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "dependencyCompatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "mode"],
+      "properties": {
+        "tier": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "mode": { "type": "string" },
+        "nativeOnly": { "type": "boolean" }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["kind", "id", "version", "required", "enabled", "installCommand", "compatibility"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/dependencyKind" },
+        "id": { "type": "string" },
+        "version": { "type": "string" },
+        "required": { "type": "boolean" },
+        "enabled": { "type": "boolean" },
+        "installCommand": { "type": "string" },
+        "compatibility": { "$ref": "#/$defs/dependencyCompatibility" }
+      }
+    },
+    "interfaceDetails": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["supported", "planned", "none"] },
+        "install": { "type": "string" },
+        "binary": { "type": "string" },
+        "image": { "type": "string" },
+        "commands": { "$ref": "#/$defs/stringArray" },
+        "tools": { "$ref": "#/$defs/stringArray" }
+      }
+    },
+    "interfaces": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/interfaceDetails" }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "kind",
+        "id",
+        "packageRef",
+        "name",
+        "version",
+        "description",
+        "category",
+        "sourcePath",
+        "sourceUrl",
+        "repositoryUrl",
+        "homepageUrl",
+        "armoryUrl",
+        "installCommand",
+        "installNote",
+        "verifyCommand",
+        "ociRef",
+        "artifactType",
+        "payloadDigest",
+        "manifestId",
+        "license",
+        "publisher",
+        "official",
+        "capabilities",
+        "keywords",
+        "files",
+        "dependencies",
+        "distribution",
+        "compatibility"
+      ],
+      "properties": {
+        "kind": { "$ref": "#/$defs/itemKind" },
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+        "packageRef": { "type": "string", "pattern": "^[a-z-]+/[a-z0-9][a-z0-9.-]*$" },
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "sourcePath": { "type": "string" },
+        "sourceUrl": { "type": "string" },
+        "repositoryUrl": { "type": "string" },
+        "homepageUrl": { "type": "string" },
+        "armoryUrl": { "type": "string" },
+        "installCommand": { "type": "string" },
+        "installNote": { "type": "string" },
+        "verifyCommand": { "type": "string" },
+        "ociRef": { "type": "string" },
+        "artifactType": { "type": "string" },
+        "payloadDigest": { "type": "string" },
+        "manifestId": { "type": "string" },
+        "license": { "type": "string" },
+        "minOmegon": { "type": "string" },
+        "minNex": { "type": "string" },
+        "canonicalFormat": { "type": "string" },
+        "destructiveCapabilities": { "$ref": "#/$defs/stringArray" },
+        "networkRequirements": { "$ref": "#/$defs/stringArray" },
+        "publisher": { "type": "string" },
+        "official": { "type": "boolean" },
+        "capabilities": { "$ref": "#/$defs/stringArray" },
+        "keywords": { "$ref": "#/$defs/stringArray" },
+        "files": { "$ref": "#/$defs/stringArray" },
+        "dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dependency" }
+        },
+        "distribution": { "$ref": "#/$defs/distribution" },
+        "compatibility": { "$ref": "#/$defs/compatibility" },
+        "interfaces": { "$ref": "#/$defs/interfaces" }
+      }
+    }
+  }
+}

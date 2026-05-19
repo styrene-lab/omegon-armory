@@ -36,6 +36,7 @@ export type ArmoryInterfaces = {
 export type ArmoryItem = {
   kind: ArmoryKind;
   id: string;
+  packageRef: string;
   name: string;
   version: string;
   description: string;

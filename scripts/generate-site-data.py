@@ -435,7 +435,17 @@ def agent_capabilities(entry: dict) -> list[str]:
 
 
 def agent_dependencies(agent_manifest: dict, extension_registry: dict) -> list[dict]:
-    return normalize_dependencies(agent_manifest.get("extensions", []), {
+    values = []
+    raw_dependencies = []
+    raw_dependencies.extend(agent_manifest.get("extensions", []))
+    raw_dependencies.extend(agent_manifest.get("dependencies", []))
+    for dep in raw_dependencies:
+        normalized = dict(dep)
+        if "kind" not in normalized and "name" in normalized:
+            normalized["kind"] = "extension"
+            normalized["id"] = normalized.get("name", "")
+        values.append(normalized)
+    return normalize_dependencies(values, {
         name: bool(entry.get("enabled", False))
         for name, entry in extension_registry.items()
         if isinstance(entry, dict)
@@ -629,6 +639,9 @@ def main() -> None:
         "registry": registry,
         "items": items,
     }
+
+    for item in items:
+        item["packageRef"] = f"{item['kind']}/{item['id']}"
 
     for target in [Path(args.out), Path(args.api)]:
         target.parent.mkdir(parents=True, exist_ok=True)

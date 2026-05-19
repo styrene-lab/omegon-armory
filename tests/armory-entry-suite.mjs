@@ -722,8 +722,13 @@ describe('generated catalog compatibility metadata', () => {
       const apiPayload = JSON.parse(fs.readFileSync(apiJson, 'utf8'));
       assert.equal(sitePayload.items.length, 30);
       assert.deepEqual(apiPayload.items, sitePayload.items);
+      const packageRefs = new Set();
 
       for (const item of sitePayload.items) {
+        assert.match(item.packageRef, /^[a-z-]+\/[a-z0-9][a-z0-9.-]*$/, `${item.kind}/${item.id}: invalid packageRef`);
+        assert.equal(item.packageRef, `${item.kind}/${item.id}`, `${item.kind}/${item.id}: packageRef must match kind/id`);
+        assert.equal(packageRefs.has(item.packageRef), false, `${item.packageRef}: duplicate packageRef`);
+        packageRefs.add(item.packageRef);
         assert.ok(item.compatibility, `${item.kind}/${item.id}: missing compatibility`);
         assert.equal(Number.isInteger(item.compatibility.tier), true, `${item.kind}/${item.id}: tier must be an integer`);
         assert.ok(item.compatibility.tier >= 0 && item.compatibility.tier <= 4, `${item.kind}/${item.id}: invalid tier`);
@@ -782,6 +787,24 @@ describe('generated catalog compatibility metadata', () => {
           assert.equal(item.compatibility.tier, 1, `${item.kind}/${item.id}: expected prompt-compatible tier`);
         }
       }
+    } finally {
+      fs.rmSync(generatedDir, { recursive: true, force: true });
+    }
+  });
+});
+
+
+describe('public API schema', () => {
+  it('validates generated API JSON against the published JSON schema', () => {
+    const generatedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omegon-armory-schema.'));
+    try {
+      const ociDir = path.join(generatedDir, 'oci');
+      const apiJson = path.join(generatedDir, 'api.json');
+      const siteJson = path.join(generatedDir, 'site.json');
+      command('python3', ['scripts/build-oci-artifacts.py', '--out', ociDir], { timeout: 180_000 });
+      command('python3', ['scripts/generate-site-data.py', '--oci', ociDir, '--out', siteJson, '--api', apiJson], { timeout: 180_000 });
+      const output = command('python3', ['scripts/validate-api-schema.py', apiJson, 'schemas/armory-index.schema.json']);
+      assert.match(output, /Validated 30 Armory API item/);
     } finally {
       fs.rmSync(generatedDir, { recursive: true, force: true });
     }
