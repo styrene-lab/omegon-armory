@@ -18,6 +18,21 @@ const hasDistinctHomepage =
   item.homepageUrl &&
   item.homepageUrl !== item.sourceUrl &&
   item.homepageUrl !== item.repositoryUrl;
+const safeId = item.id.replace(/[^a-zA-Z0-9._-]/g, "-");
+const pullDir = `armory-${safeId}`;
+const cloneCommand = `git clone https://github.com/styrene-lab/omegon-armory\ncd omegon-armory`;
+const ociQuickStart = item.ociRef
+  ? `# Install ORAS first: https://oras.land/docs/installation\nmkdir -p ${pullDir}\noras pull ${item.ociRef} --output ${pullDir}\nfind ${pullDir} -maxdepth 2 -type f | sort`
+  : "";
+const sourcePluginCommand = ["skill", "persona", "tone"].includes(item.kind)
+  ? `${cloneCommand}\nomegon plugin install ./${item.sourcePath}`
+  : "";
+const forgeQuickStart = item.kind === "forge-template" && item.ociRef
+  ? `# Pull the template payload\nmkdir -p ${pullDir}\noras pull ${item.ociRef} --output ${pullDir}\n\n# Validate with Nex before using it\nnex forge check ${pullDir}/forge.pkl \\\n  --metadata ${pullDir}/forge.toml \\\n  --json \\\n  --no-execute`
+  : "";
+const profileExportSetup = item.kind === "profile"
+  ? `${cloneCommand}\npython3 scripts/export-profile.py ${item.id} --format agents-md --out dist/exports/${item.id}-AGENTS.md`
+  : "";
 ---
 
 <BaseLayout title={`${item.name} | Omegon Armory`} description={item.description}>
@@ -49,20 +64,48 @@ const hasDistinctHomepage =
 
     <section class="detail-grid">
       <div class="detail-main">
-        <h2>Install</h2>
-        <CommandBlock label="Omegon" command={item.installCommand} />
+        <h2>Use this package</h2>
         <p class="install-note large">{item.installNote}</p>
+
         {item.distribution === "registry" && (
-          <p class="distribution-note">
-            This extension is resolved by the Omegon extension registry and installed from its upstream repository/release metadata.
-          </p>
+          <>
+            <CommandBlock label="Install with Omegon" command={item.installCommand} />
+            <p class="distribution-note">
+              This extension is resolved by the Omegon extension registry and installed from its upstream repository/release metadata.
+            </p>
+          </>
         )}
+
         {item.distribution === "external" && (
-          <p class="distribution-note">
-            This is an external community integration. Use the declared portable interfaces; it is not installable as a native Omegon extension yet.
-          </p>
+          <>
+            <p class="distribution-note">
+              This is an external community integration. Use the upstream project and declared portable interfaces; it is not installable as a native Omegon extension yet.
+            </p>
+            <CommandBlock label="Open upstream project" command={`open ${item.repositoryUrl}`} />
+          </>
         )}
-        {item.ociRef && <CommandBlock label="OCI pull" command={`oras pull ${item.ociRef}`} />}
+
+        {sourcePluginCommand && (
+          <>
+            <h3>Source checkout install</h3>
+            <CommandBlock label="Clone and install plugin" command={sourcePluginCommand} />
+          </>
+        )}
+
+        {item.ociRef && (
+          <>
+            <h3>OCI download</h3>
+            <CommandBlock label="Pull and inspect artifact" command={ociQuickStart} />
+          </>
+        )}
+
+        {forgeQuickStart && (
+          <>
+            <h3>Nex validation</h3>
+            <CommandBlock label="Pull and validate forge template" command={forgeQuickStart} />
+          </>
+        )}
+
         {item.verifyCommand && <CommandBlock label="Verify signature" command={item.verifyCommand} />}
 
         {item.kind === "profile" && (
@@ -72,7 +115,7 @@ const hasDistinctHomepage =
               Profiles can be rendered into degraded prompt/config files for non-Omegon runtimes. Native extensions remain setup notes, not prompt content.
             </p>
             <CommandBlock label="Generic markdown" command={`python3 scripts/export-profile.py ${item.id} --format generic-markdown --out dist/exports/${item.id}.md`} />
-            <CommandBlock label="AGENTS.md" command={`python3 scripts/export-profile.py ${item.id} --format agents-md --out dist/exports/${item.id}-AGENTS.md`} />
+            <CommandBlock label="Clone and export AGENTS.md" command={profileExportSetup} />
             <CommandBlock label="CLAUDE.md" command={`python3 scripts/export-profile.py ${item.id} --format claude-md --out dist/exports/${item.id}-CLAUDE.md`} />
             <CommandBlock label="Cursor rules" command={`python3 scripts/export-profile.py ${item.id} --format cursor-rules --out dist/exports/${item.id}.cursorrules`} />
           </>
