@@ -80,3 +80,13 @@ maintainer = "primaris-tech"
 license = "Apache-2.0"
 min_sdk = "0.0"
 version = "latest"
+[omegon-nex]
+enabled = true
+repo = "https://github.com/styrene-lab/omegon-nex"
+description = "Trusted Nex package-provider extension — allowlisted helper tool resolution, install plans, and fixed read-only devenv/machine-profile substrate delegation."
+category = "tools"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.25"
+manifest_path = "manifest.toml"
+asset_prefix = "omegon-nex"
