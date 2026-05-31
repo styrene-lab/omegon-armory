@@ -1,0 +1,43 @@
+[extension]
+name = "omegon-nex"
+repo = "https://github.com/styrene-lab/omegon-nex"
+description = "Trusted Nex package-provider extension — allowlisted helper tool resolution, install plans, and fixed read-only devenv/machine-profile substrate delegation."
+category = "tools"
+maintainer = "Black Meridian"
+license = "MIT"
+min_sdk = "0.25"
+homepage = "https://github.com/styrene-lab/omegon-nex"
+manifest_path = "manifest.toml"
+asset_prefix = "omegon-nex"
+
+[tools]
+nex_status = "Health check for Nex package-provider integration."
+nex_tool_status = "Return allowlisted Nex package-provider status for a helper tool."
+nex_tool_resolve = "Resolve an allowlisted helper tool executable if installed."
+nex_tool_install_plan = "Return a host-action install plan for an allowlisted helper tool."
+nex_tool_install = "Return a dry-run install command and host-action plan."
+nex_devenv_inspect = "Fixed read-only nex devenv inspect — returns raw Nex devenv import report."
+nex_devenv_explain = "Fixed read-only nex devenv explain — returns raw Nex devenv explain report."
+nex_machine_profile_inspect = "Fixed read-only nex machine-profile inspect — returns raw Nex machine-profile report."
+
+[security]
+process_allowlist = "which, nex"
+mutating_operations = "none — all substrate tools are read-only fixed-argv delegations"
+install_boundary = "Install plans are returned as host-action intents (package.install@1); no package mutation inside the extension."
+
+[interfaces.omegon]
+status = "supported"
+install = "omegon extension install omegon-nex"
+
+[interfaces.cli]
+status = "none"
+
+[interfaces.mcp]
+status = "none"
+
+[interfaces.http]
+status = "none"
+
+[interfaces.oci]
+status = "none"
+
